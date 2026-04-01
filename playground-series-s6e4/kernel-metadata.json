@@ -1,0 +1,23 @@
+{
+  "id": "smartorz/irrigation-hgbc-xgb-lgbm-catb-realmlp-baseline",
+  "id_no": 114292459,
+  "title": "irrigation-hgbc-xgb-lgbm-catb-realmlp-baseline",
+  "code_file": "irrigation-hgbc-xgb-lgbm-catb-realmlp-baseline.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [],
+  "dataset_sources": [
+    "miadul/irrigation-water-requirement-prediction-dataset"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [
+    "playground-series-s6e4"
+  ],
+  "model_sources": [],
+  "docker_image": "gcr.io/kaggle-images/python@sha256:c370a5ff133d162d17c2dca332b50f3e85c0b0ed1471ee18e98e3009eee80b08",
+  "machine_shape": "None"
+}
