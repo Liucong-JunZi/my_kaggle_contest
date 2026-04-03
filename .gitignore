@@ -1,4 +1,10 @@
 *.env
+*.env1
+*.env2
+nvidia-nemotron-model-reasoning-challenge/cot_output/techniques/
+nvidia-nemotron-model-reasoning-challenge/cot_output/raw_cot/
+nvidia-nemotron-model-reasoning-challenge/cot_output/distilled_cot/
+nvidia-nemotron-model-reasoning-challenge/cot_output/
 *.csv
 .DS_Store
 .claude/

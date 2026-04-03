@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/csv"
 	"encoding/json"
 	"flag"
@@ -24,13 +25,21 @@ import (
 var (
 	apiEndpoint string
 	apiModel    string
-	apiKey      string
+	apiKeys     []string
+	apiKeyIdx   atomic.Uint64
+	apiFormat   string // "anthropic" or "openai"
 	baseDir     string
 )
 
+// nextKey returns the next API key in round-robin fashion
+func nextKey() string {
+	idx := apiKeyIdx.Add(1) - 1
+	return apiKeys[idx%uint64(len(apiKeys))]
+}
+
 const (
-	maxSolveRetries = 999999 // unlimited — keep going until correct
-	maxAPIRetries   = 999    // unlimited API retries
+	maxSolveRetries = 10    // max solve attempts per problem before moving on
+	maxAPIRetries   = 999   // unlimited API retries for transient errors
 	retryDelay      = 2 * time.Second
 	apiTimeout      = 600 * time.Second // 10 min for very long reasoning
 )
@@ -83,23 +92,19 @@ type SolveInfo struct {
 	Failed   bool   `json:"failed,omitempty"`
 }
 
-// Anthropic API request/response types
-type AnthropicContent struct {
-	Type string `json:"type"`
-	Text string `json:"json:"text,omitempty"`
-}
-
-type AnthropicMessage struct {
+// API message type (shared between formats)
+type ChatMessage struct {
 	Role    string      `json:"role"`
-	Content interface{} `json:"content"` // string or []AnthropicContent
+	Content interface{} `json:"content"` // string or []ContentBlock
 }
 
+// Anthropic format types
 type AnthropicRequest struct {
-	Model       string             `json:"model"`
-	MaxTokens   int                `json:"max_tokens"`
-	System      string             `json:"system,omitempty"`
-	Messages    []AnthropicMessage `json:"messages"`
-	Temperature float64            `json:"temperature"`
+	Model       string        `json:"model"`
+	MaxTokens   int           `json:"max_tokens"`
+	System      string        `json:"system,omitempty"`
+	Messages    []ChatMessage `json:"messages"`
+	Temperature float64       `json:"temperature"`
 }
 
 type AnthropicResponseContent struct {
@@ -112,6 +117,44 @@ type AnthropicResponse struct {
 	Content []AnthropicResponseContent `json:"content"`
 }
 
+// OpenAI format types
+type OpenAIRequest struct {
+	Model       string        `json:"model"`
+	MaxTokens   int           `json:"max_tokens"`
+	Messages    []ChatMessage `json:"messages"`
+	Temperature float64       `json:"temperature"`
+	Stream      bool          `json:"stream"`
+}
+
+type OpenAIChoiceMessage struct {
+	Role             string `json:"role"`
+	Content          string `json:"content"`
+	ReasoningContent string `json:"reasoning_content,omitempty"`
+}
+
+type OpenAIChoice struct {
+	Message OpenAIChoiceMessage `json:"message"`
+}
+
+type OpenAIResponse struct {
+	Choices []OpenAIChoice `json:"choices"`
+}
+
+type OpenAIStreamDelta struct {
+	Role             string `json:"role,omitempty"`
+	Content          string `json:"content,omitempty"`
+	ReasoningContent string `json:"reasoning_content,omitempty"`
+}
+
+type OpenAIStreamChoice struct {
+	Delta OpenAIStreamDelta `json:"delta"`
+}
+
+type OpenAIStreamChunk struct {
+	Choices []OpenAIStreamChoice `json:"choices"`
+}
+
+
 // === Globals ===
 var (
 	shutdown   atomic.Bool
@@ -120,11 +163,12 @@ var (
 )
 
 // === Load .env ===
-func loadEnv(path string) map[string]string {
+func loadEnv(path string) (map[string]string, []string) {
 	env := map[string]string{}
+	var extraKeys []string
 	f, err := os.Open(path)
 	if err != nil {
-		return env
+		return env, extraKeys
 	}
 	defer f.Close()
 	buf, _ := io.ReadAll(f)
@@ -133,36 +177,62 @@ func loadEnv(path string) map[string]string {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
+		// Lines that look like raw API keys (sk-... without = sign)
+		if strings.HasPrefix(line, "sk-") && !strings.Contains(line, "=") {
+			extraKeys = append(extraKeys, line)
+			continue
+		}
 		parts := strings.SplitN(line, "=", 2)
 		if len(parts) == 2 {
 			env[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
 		}
 	}
-	return env
+	return env, extraKeys
 }
 
-// === Anthropic API call ===
-// messages: only user/assistant pairs (no system — passed separately)
-func apiCall(systemPrompt string, messages []AnthropicMessage, temperature float64, maxTokens int) (string, error) {
-	reqBody := AnthropicRequest{
-		Model:       apiModel,
-		MaxTokens:   maxTokens,
-		System:      systemPrompt,
-		Messages:    messages,
-		Temperature: temperature,
+// === API call (supports Anthropic and OpenAI formats) ===
+func apiCall(systemPrompt string, messages []ChatMessage, temperature float64, maxTokens int) (string, error) {
+	var reqBody []byte
+
+	if apiFormat == "openai" {
+		// OpenAI format: system goes as first message, use streaming to avoid 504
+		allMsgs := append([]ChatMessage{systemMsg(systemPrompt)}, messages...)
+		req := OpenAIRequest{
+			Model:       apiModel,
+			MaxTokens:   maxTokens,
+			Messages:    allMsgs,
+			Temperature: temperature,
+			Stream:      true,
+		}
+		reqBody, _ = json.Marshal(req)
+	} else {
+		// Anthropic format: system is a separate field
+		req := AnthropicRequest{
+			Model:       apiModel,
+			MaxTokens:   maxTokens,
+			System:      systemPrompt,
+			Messages:    messages,
+			Temperature: temperature,
+		}
+		reqBody, _ = json.Marshal(req)
 	}
-	body, _ := json.Marshal(reqBody)
 
 	for attempt := 0; attempt < maxAPIRetries; attempt++ {
 		if shutdown.Load() {
 			return "", fmt.Errorf("shutdown requested")
 		}
-		req, err := http.NewRequest("POST", apiEndpoint, strings.NewReader(string(body)))
+		key := nextKey()
+		req, err := http.NewRequest("POST", apiEndpoint, strings.NewReader(string(reqBody)))
 		if err != nil {
 			return "", err
 		}
-		req.Header.Set("x-api-key", apiKey)
-		req.Header.Set("anthropic-version", "2023-06-01")
+
+		if apiFormat == "openai" {
+			req.Header.Set("Authorization", "Bearer "+key)
+		} else {
+			req.Header.Set("x-api-key", key)
+			req.Header.Set("anthropic-version", "2023-06-01")
+		}
 		req.Header.Set("Content-Type", "application/json")
 
 		resp, err := httpClient.Do(req)
@@ -176,10 +246,9 @@ func apiCall(systemPrompt string, messages []AnthropicMessage, temperature float
 			continue
 		}
 
-		respBody, _ := io.ReadAll(resp.Body)
-		resp.Body.Close()
-
 		if resp.StatusCode != 200 {
+			respBody, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
 			snippet := string(respBody)
 			if len(snippet) > 200 {
 				snippet = snippet[:200]
@@ -190,29 +259,65 @@ func apiCall(systemPrompt string, messages []AnthropicMessage, temperature float
 			continue
 		}
 
-		var apiResp AnthropicResponse
-		if err := json.Unmarshal(respBody, &apiResp); err != nil {
-			delay := retryDelay * time.Duration(math.Pow(2, float64(attempt)))
-			log.Printf("  JSON parse error (attempt %d/%d): %v. Retrying in %v...", attempt+1, maxAPIRetries, err, delay)
-			time.Sleep(delay)
-			continue
-		}
+		var result string
 
-		var thinking, text string
-		for _, block := range apiResp.Content {
-			switch block.Type {
-			case "thinking":
-				thinking += block.Thinking
-			case "text":
-				text += block.Text
+		if apiFormat == "openai" {
+			var reasoning, content string
+			scanner := bufio.NewScanner(resp.Body)
+			scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+			for scanner.Scan() {
+				line := scanner.Text()
+				if !strings.HasPrefix(line, "data: ") {
+					continue
+				}
+				data := strings.TrimPrefix(line, "data: ")
+				if data == "[DONE]" {
+					break
+				}
+				var chunk OpenAIStreamChunk
+				if err := json.Unmarshal([]byte(data), &chunk); err != nil {
+					continue
+				}
+				if len(chunk.Choices) > 0 {
+					delta := chunk.Choices[0].Delta
+					reasoning += delta.ReasoningContent
+					content += delta.Content
+				}
+			}
+			resp.Body.Close()
+			result = reasoning
+			if result != "" && content != "" {
+				result += "\n\n" + content
+			} else if content != "" {
+				result = content
+			}
+		} else {
+			var apiResp AnthropicResponse
+			respBody, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			if err := json.Unmarshal(respBody, &apiResp); err != nil {
+				delay := retryDelay * time.Duration(math.Pow(2, float64(attempt)))
+				log.Printf("  JSON parse error (attempt %d/%d): %v. Retrying in %v...", attempt+1, maxAPIRetries, err, delay)
+				time.Sleep(delay)
+				continue
+			}
+			var thinking, text string
+			for _, block := range apiResp.Content {
+				switch block.Type {
+				case "thinking":
+					thinking += block.Thinking
+				case "text":
+					text += block.Text
+				}
+			}
+			result = thinking
+			if result != "" && text != "" {
+				result += "\n\n" + text
+			} else if text != "" {
+				result = text
 			}
 		}
-		result := thinking
-		if result != "" && text != "" {
-			result += "\n\n" + text
-		} else if text != "" {
-			result = text
-		}
+
 		if result == "" {
 			delay := retryDelay * time.Duration(math.Pow(2, float64(attempt)))
 			log.Printf("  Empty response (attempt %d/%d). Retrying in %v...", attempt+1, maxAPIRetries, delay)
@@ -269,7 +374,7 @@ func loadTrainData() ([]Problem, error) {
 	return problems, nil
 }
 
-// === Answer extraction ===
+// === Answer extraction via regex (fallback) ===
 var boxedRe = regexp.MustCompile(`\\boxed\{([^}]+)\}`)
 
 func extractBoxedAnswer(text string) string {
@@ -278,6 +383,39 @@ func extractBoxedAnswer(text string) string {
 		return strings.TrimSpace(matches[len(matches)-1][1])
 	}
 	return ""
+}
+
+// === Agent 3: Judge — use LLM to extract and compare answers ===
+const judgeSystem = `You are an answer verification assistant. Your ONLY job is to extract the final answer from the model's response and compare it with the expected answer.
+
+Rules:
+1. Extract ONLY the final numerical or textual answer from the response
+2. Ignore all reasoning, explanations, and intermediate steps
+3. If the answer is inside \boxed{}, extract it from there
+4. If not in \boxed{}, look for the final answer at the end or clearly stated as the answer
+5. Compare the extracted answer with the expected answer — consider mathematically equivalent answers as correct (e.g., 1/2 = 0.5, 2.0 = 2)
+
+Respond with EXACTLY one of these two words:
+- CORRECT (if the answers match or are equivalent)
+- WRONG (if they don't match)
+
+Nothing else. Just one word.`
+
+func judgeAnswer(response, correctAnswer string) bool {
+	truncated := response
+	if len(truncated) > 3000 {
+		truncated = truncated[len(truncated)-3000:]
+	}
+	messages := []ChatMessage{
+		userMsg(fmt.Sprintf("Expected answer: %s\n\nModel response:\n%s\n\nIs the final answer in the response equivalent to the expected answer? Reply CORRECT or WRONG.", correctAnswer, truncated)),
+	}
+	result, err := apiCall(judgeSystem, messages, 0.0, 16)
+	if err != nil {
+		log.Printf("  Judge API error: %v", err)
+		return false
+	}
+	result = strings.TrimSpace(strings.ToUpper(result))
+	return strings.HasPrefix(result, "CORRECT")
 }
 
 func normalizeAnswer(ans string) string {
@@ -291,13 +429,17 @@ func normalizeAnswer(ans string) string {
 	return strings.ToLower(ans)
 }
 
-// helper: wrap string into Anthropic content message
-func userMsg(text string) AnthropicMessage {
-	return AnthropicMessage{Role: "user", Content: text}
+// helper: wrap string into ChatMessage
+func userMsg(text string) ChatMessage {
+	return ChatMessage{Role: "user", Content: text}
 }
 
-func assistantMsg(text string) AnthropicMessage {
-	return AnthropicMessage{Role: "assistant", Content: text}
+func assistantMsg(text string) ChatMessage {
+	return ChatMessage{Role: "assistant", Content: text}
+}
+
+func systemMsg(text string) ChatMessage {
+	return ChatMessage{Role: "system", Content: text}
 }
 
 // === Agent 1: Solver ===
@@ -310,7 +452,7 @@ Rules:
 4. If you make a mistake, you will be told to try again without the correct answer`
 
 func solveProblem(prompt, correctAnswer string) (*RawCOT, error) {
-	messages := []AnthropicMessage{
+	messages := []ChatMessage{
 		userMsg(prompt + "\n\nPut your final answer inside \\boxed{}."),
 	}
 
@@ -330,9 +472,19 @@ func solveProblem(prompt, correctAnswer string) (*RawCOT, error) {
 			return nil, err
 		}
 
+		// First try regex extraction
 		extracted := extractBoxedAnswer(response)
 		if extracted != "" && normalizeAnswer(extracted) == normalizeAnswer(correctAnswer) {
-			log.Printf("  ✅ Correct answer on attempt %d", attempt+1)
+			log.Printf("  Correct answer on attempt %d (regex)", attempt+1)
+			return &RawCOT{
+				Prompt:        prompt,
+				Answer:        correctAnswer,
+				FullReasoning: response,
+			}, nil
+		}
+		// Regex failed — use LLM judge
+		if judgeAnswer(response, correctAnswer) {
+			log.Printf("  Correct answer on attempt %d (judge)", attempt+1)
 			return &RawCOT{
 				Prompt:        prompt,
 				Answer:        correctAnswer,
@@ -340,7 +492,7 @@ func solveProblem(prompt, correctAnswer string) (*RawCOT, error) {
 			}, nil
 		}
 
-		log.Printf("  ❌ Wrong: got '%s', expected '%s'", extracted, correctAnswer)
+		log.Printf("  Wrong: got '%s', expected '%s'", extracted, correctAnswer)
 		time.Sleep(2 * time.Second) // brief pause between attempts
 
 		prev := response
@@ -377,14 +529,14 @@ const techniqueSystem = `You are a math education expert. Based on the detailed 
 Be concise and actionable. Focus on transferable skills, not problem-specific details.`
 
 func distillReasoning(prompt, fullReasoning string) (string, error) {
-	messages := []AnthropicMessage{
+	messages := []ChatMessage{
 		userMsg("Problem: " + prompt + "\n\nFull reasoning process:\n" + fullReasoning),
 	}
 	return apiCall(distillerSystem, messages, 1.0, 2048)
 }
 
 func extractTechnique(prompt, fullReasoning string) (string, error) {
-	messages := []AnthropicMessage{
+	messages := []ChatMessage{
 		userMsg("Problem: " + prompt + "\n\nFull reasoning process:\n" + fullReasoning),
 	}
 	return apiCall(techniqueSystem, messages, 1.0, 1024)
@@ -526,6 +678,7 @@ func trunc(s string, n int) string {
 func main() {
 	limitFlag := flag.Int("limit", 0, "Only process first N problems (0=all)")
 	workersFlag := flag.Int("workers", 5, "Number of concurrent goroutines")
+	envFlag := flag.String("env", ".env", "Env file to load (.env or .env2)")
 	flag.Parse()
 
 	// Setup dirs
@@ -536,8 +689,9 @@ func main() {
 		baseDir = filepath.Dir(exe)
 	}
 
-	// Load .env
-	env := loadEnv(filepath.Join(baseDir, ".env"))
+	// Load env file
+	envFile := *envFlag
+	env, extraKeys := loadEnv(filepath.Join(baseDir, envFile))
 	apiBase := env["API_BASE_URL"]
 	if apiBase == "" {
 		apiBase = os.Getenv("API_BASE_URL")
@@ -546,14 +700,28 @@ func main() {
 	if apiModel == "" {
 		apiModel = os.Getenv("API_MODEL")
 	}
-	apiKey = env["API_KEY"]
-	if apiKey == "" {
-		apiKey = os.Getenv("API_KEY")
+	primary := env["API_KEY"]
+	if primary == "" {
+		primary = os.Getenv("API_KEY")
 	}
-	// Anthropic API endpoint
-	apiEndpoint = strings.TrimRight(apiBase, "/") + "/v1/messages"
+	// Build key pool: primary key + all extra keys
+	apiKeys = []string{primary}
+	apiKeys = append(apiKeys, extraKeys...)
+	// Detect API format from base URL
+	apiBase = strings.TrimRight(apiBase, "/")
+	if strings.Contains(apiBase, "/anthropic") {
+		apiFormat = "anthropic"
+		apiEndpoint = apiBase + "/v1/messages"
+	} else {
+		apiFormat = "openai"
+		if strings.HasSuffix(apiBase, "/v1") || strings.Contains(apiBase, "/v1/") {
+			apiEndpoint = apiBase + "/chat/completions"
+		} else {
+			apiEndpoint = apiBase + "/v1/chat/completions"
+		}
+	}
 
-	if apiBase == "" || apiModel == "" || apiKey == "" {
+	if apiBase == "" || apiModel == "" || len(apiKeys) == 0 || apiKeys[0] == "" {
 		log.Fatal("Please fill in .env file with API_BASE_URL, API_MODEL, API_KEY")
 	}
 
@@ -576,8 +744,8 @@ func main() {
 
 	// HTTP client with connection pooling
 	transport := &http.Transport{
-		MaxIdleConns:        20,
-		MaxIdleConnsPerHost: 20,
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 100,
 		IdleConnTimeout:     90 * time.Second,
 	}
 	httpClient = &http.Client{Timeout: apiTimeout, Transport: transport}
@@ -602,7 +770,7 @@ func main() {
 	}
 	total := len(problems)
 	log.Printf("Loaded %d problems (limit=%d, workers=%d)", total, *limitFlag, *workersFlag)
-	log.Printf("Using model: %s @ %s", apiModel, apiEndpoint)
+	log.Printf("Using model: %s @ %s (with %d API keys)", apiModel, apiEndpoint, len(apiKeys))
 
 	ckpt := loadCheckpoint()
 	log.Printf("Checkpoint: %d solved, %d distilled, %d techniques",
