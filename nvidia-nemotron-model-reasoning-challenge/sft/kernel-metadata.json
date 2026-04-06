@@ -1,8 +1,7 @@
 {
-  "id": "smartorz/nvidia-nemotron-training-cot-labels",
-  "id_no": 114297381,
-  "title": "NVIDIA Nemotron Training (CoT + Labels)",
-  "code_file": "nvidia-nemotron-submission-demo.ipynb",
+  "id": "smartorz/NVIDIANemotron-SFTTrainertraining",
+  "title": "NVIDIANemotron-SFTTrainertraining",
+  "code_file": "nvidia-nemotron-sfttrainer-training.ipynb",
   "language": "python",
   "kernel_type": "notebook",
   "is_private": true,
@@ -24,6 +23,5 @@
   "model_sources": [
     "metric/nemotron-3-nano-30b-a3b-bf16/Transformers/default/1"
   ],
-  "docker_image": "gcr.io/kaggle-images/python@sha256:221c8b519c4f2efa4e712ac0f2e85878a403ea4d523a2cedf8ebf60cf1136c45",
   "machine_shape": "GPU"
 }
