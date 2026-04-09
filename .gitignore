@@ -6,5 +6,6 @@ nvidia-nemotron-model-reasoning-challenge/cot_output/raw_cot/
 nvidia-nemotron-model-reasoning-challenge/cot_output/distilled_cot/
 nvidia-nemotron-model-reasoning-challenge/cot_output/
 *.csv
+cot_output/
 .DS_Store
 .claude/

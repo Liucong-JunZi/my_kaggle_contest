@@ -27,7 +27,7 @@ var (
 	apiModel    string
 	apiKeys     []string
 	apiKeyIdx   atomic.Uint64
-	apiFormat   string // "anthropic" or "openai"
+	apiFormat   string // "anthropic" | "openai-chat" | "openai-responses"
 	baseDir     string
 )
 
@@ -38,8 +38,8 @@ func nextKey() string {
 }
 
 const (
-	maxSolveRetries = 10    // max solve attempts per problem before moving on
-	maxAPIRetries   = 999   // unlimited API retries for transient errors
+	maxSolveRetries = 10  // max solve attempts per problem before moving on
+	maxAPIRetries   = 999 // unlimited API retries for transient errors
 	retryDelay      = 2 * time.Second
 	apiTimeout      = 600 * time.Second // 10 min for very long reasoning
 )
@@ -50,6 +50,7 @@ var (
 	rawCotDir       string
 	distilledCotDir string
 	techniquesDir   string
+	apiConfigCache  string
 )
 
 // === Types ===
@@ -126,6 +127,26 @@ type OpenAIRequest struct {
 	Stream      bool          `json:"stream"`
 }
 
+// OpenAI Responses API types
+type OpenAIResponsesInputText struct {
+	Type string `json:"type"`
+	Text string `json:"text"`
+}
+
+type OpenAIResponsesInputItem struct {
+	Role    string                     `json:"role"`
+	Content []OpenAIResponsesInputText `json:"content"`
+}
+
+type OpenAIResponsesRequest struct {
+	Model           string                     `json:"model"`
+	Input           []OpenAIResponsesInputItem `json:"input"`
+	Temperature     float64                    `json:"temperature,omitempty"`
+	MaxOutputTokens int                        `json:"max_output_tokens,omitempty"`
+	MaxTokens       int                        `json:"max_tokens,omitempty"`
+	Stream          bool                       `json:"stream"`
+}
+
 type OpenAIChoiceMessage struct {
 	Role             string `json:"role"`
 	Content          string `json:"content"`
@@ -154,15 +175,37 @@ type OpenAIStreamChunk struct {
 	Choices []OpenAIStreamChoice `json:"choices"`
 }
 
+type APIConfigEntry struct {
+	Format    string `json:"format"`
+	Endpoint  string `json:"endpoint"`
+	UpdatedAt string `json:"updated_at"`
+}
+
+type APICandidate struct {
+	Format   string
+	Endpoint string
+}
 
 // === Globals ===
 var (
 	shutdown   atomic.Bool
 	ckptMu     sync.Mutex
+	apiCfgMu   sync.RWMutex
+	noChatMode atomic.Bool
 	httpClient *http.Client
 )
 
 // === Load .env ===
+func trimEnvValue(v string) string {
+	v = strings.TrimSpace(v)
+	if len(v) >= 2 {
+		if (v[0] == '"' && v[len(v)-1] == '"') || (v[0] == '\'' && v[len(v)-1] == '\'') {
+			v = v[1 : len(v)-1]
+		}
+	}
+	return strings.TrimSpace(v)
+}
+
 func loadEnv(path string) (map[string]string, []string) {
 	env := map[string]string{}
 	var extraKeys []string
@@ -177,6 +220,9 @@ func loadEnv(path string) (map[string]string, []string) {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
+		if strings.HasPrefix(line, "export ") {
+			line = strings.TrimSpace(strings.TrimPrefix(line, "export "))
+		}
 		// Lines that look like raw API keys (sk-... without = sign)
 		if strings.HasPrefix(line, "sk-") && !strings.Contains(line, "=") {
 			extraKeys = append(extraKeys, line)
@@ -184,18 +230,382 @@ func loadEnv(path string) (map[string]string, []string) {
 		}
 		parts := strings.SplitN(line, "=", 2)
 		if len(parts) == 2 {
-			env[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+			key := strings.TrimSpace(parts[0])
+			val := trimEnvValue(parts[1])
+			env[key] = val
 		}
 	}
 	return env, extraKeys
 }
 
-// === API call (supports Anthropic and OpenAI formats) ===
-func apiCall(systemPrompt string, messages []ChatMessage, temperature float64, maxTokens int) (string, error) {
-	var reqBody []byte
+func loadAPIConfigCache(path string) map[string]APIConfigEntry {
+	cache := map[string]APIConfigEntry{}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return cache
+	}
+	_ = json.Unmarshal(data, &cache)
+	return cache
+}
 
-	if apiFormat == "openai" {
-		// OpenAI format: system goes as first message, use streaming to avoid 504
+func saveAPIConfigCache(path string, cache map[string]APIConfigEntry) {
+	_ = os.MkdirAll(filepath.Dir(path), 0755)
+	data, _ := json.MarshalIndent(cache, "", "  ")
+	_ = os.WriteFile(path, data, 0644)
+}
+
+func inferAPIFormatFromEndpoint(endpoint string) string {
+	ep := strings.ToLower(endpoint)
+	switch {
+	case strings.Contains(ep, "/v1/messages") || strings.HasSuffix(ep, "/messages"):
+		return "anthropic"
+	case strings.Contains(ep, "/chat/completions"):
+		return "openai-chat"
+	case strings.Contains(ep, "/responses"):
+		return "openai-responses"
+	default:
+		return ""
+	}
+}
+
+func normalizeFormat(s string) string {
+	s = strings.TrimSpace(strings.ToLower(s))
+	switch s {
+	case "anthropic":
+		return "anthropic"
+	case "openai", "openai-chat", "chat", "chat-completions":
+		return "openai-chat"
+	case "openai-responses", "responses", "response":
+		return "openai-responses"
+	default:
+		return ""
+	}
+}
+
+func canonicalBaseURL(apiBase string) string {
+	return strings.TrimRight(strings.TrimSpace(apiBase), "/")
+}
+
+func defaultEndpointForFormat(apiBase, format string) string {
+	base := canonicalBaseURL(apiBase)
+	if base == "" {
+		return ""
+	}
+	switch format {
+	case "anthropic":
+		if strings.HasSuffix(base, "/v1/messages") {
+			return base
+		}
+		if strings.HasSuffix(base, "/v1") {
+			return base + "/messages"
+		}
+		if strings.HasSuffix(base, "/anthropic") || strings.Contains(base, "/anthropic/") {
+			return base + "/v1/messages"
+		}
+		return base + "/v1/messages"
+	case "openai-chat":
+		if strings.HasSuffix(base, "/chat/completions") {
+			return base
+		}
+		if strings.HasSuffix(base, "/v1") || strings.Contains(base, "/v1/") {
+			return base + "/chat/completions"
+		}
+		return base + "/v1/chat/completions"
+	case "openai-responses":
+		if strings.HasSuffix(base, "/responses") {
+			return base
+		}
+		if strings.HasSuffix(base, "/v1") || strings.Contains(base, "/v1/") {
+			return base + "/responses"
+		}
+		return base + "/v1/responses"
+	default:
+		return ""
+	}
+}
+
+func buildAPICandidates(apiBase, formatHint, endpointHint string) []APICandidate {
+	base := canonicalBaseURL(apiBase)
+	formatHint = normalizeFormat(formatHint)
+	endpointHint = strings.TrimSpace(endpointHint)
+	if endpointHint != "" {
+		endpointHint = strings.TrimRight(endpointHint, "/")
+	}
+
+	seen := map[string]bool{}
+	add := func(format, endpoint string, out *[]APICandidate) {
+		format = normalizeFormat(format)
+		endpoint = strings.TrimRight(strings.TrimSpace(endpoint), "/")
+		if format == "" || endpoint == "" {
+			return
+		}
+		key := format + "|" + endpoint
+		if seen[key] {
+			return
+		}
+		seen[key] = true
+		*out = append(*out, APICandidate{Format: format, Endpoint: endpoint})
+	}
+
+	var candidates []APICandidate
+	if endpointHint != "" {
+		if formatHint != "" {
+			add(formatHint, endpointHint, &candidates)
+		} else {
+			if inferred := inferAPIFormatFromEndpoint(endpointHint); inferred != "" {
+				add(inferred, endpointHint, &candidates)
+			}
+		}
+	}
+
+	if formatHint != "" {
+		add(formatHint, defaultEndpointForFormat(base, formatHint), &candidates)
+	}
+
+	if base != "" {
+		if inferred := inferAPIFormatFromEndpoint(base); inferred != "" {
+			add(inferred, base, &candidates)
+		}
+		add("openai-chat", defaultEndpointForFormat(base, "openai-chat"), &candidates)
+		add("openai-responses", defaultEndpointForFormat(base, "openai-responses"), &candidates)
+		add("anthropic", defaultEndpointForFormat(base, "anthropic"), &candidates)
+
+		// Also try direct non-v1 paths for OpenAI-compatible gateways.
+		if !strings.HasSuffix(base, "/v1") && !strings.Contains(base, "/v1/") {
+			add("openai-chat", base+"/chat/completions", &candidates)
+			add("openai-responses", base+"/responses", &candidates)
+		}
+	}
+
+	return candidates
+}
+
+func probeAPIConfig(format, endpoint, key, model string) error {
+	var reqBody []byte
+	switch format {
+	case "anthropic":
+		req := AnthropicRequest{
+			Model:       model,
+			MaxTokens:   8,
+			System:      "",
+			Messages:    []ChatMessage{userMsg("Reply with OK")},
+			Temperature: 0,
+		}
+		reqBody, _ = json.Marshal(req)
+	case "openai-chat":
+		req := OpenAIRequest{
+			Model:       model,
+			MaxTokens:   8,
+			Messages:    []ChatMessage{userMsg("Reply with OK")},
+			Temperature: 0,
+			Stream:      false,
+		}
+		reqBody, _ = json.Marshal(req)
+	case "openai-responses":
+		req := OpenAIResponsesRequest{
+			Model:           model,
+			Input:           []OpenAIResponsesInputItem{{Role: "user", Content: []OpenAIResponsesInputText{{Type: "input_text", Text: "Reply with OK"}}}},
+			Temperature:     0,
+			MaxOutputTokens: 8,
+			MaxTokens:       8,
+			Stream:          false,
+		}
+		reqBody, _ = json.Marshal(req)
+	default:
+		return fmt.Errorf("unknown format: %s", format)
+	}
+
+	req, err := http.NewRequest("POST", endpoint, strings.NewReader(string(reqBody)))
+	if err != nil {
+		return err
+	}
+	if format == "anthropic" {
+		req.Header.Set("x-api-key", key)
+		req.Header.Set("anthropic-version", "2023-06-01")
+	} else {
+		req.Header.Set("Authorization", "Bearer "+key)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != 200 {
+		snippet := strings.TrimSpace(string(body))
+		if len(snippet) > 200 {
+			snippet = snippet[:200]
+		}
+		return fmt.Errorf("status=%d body=%s", resp.StatusCode, snippet)
+	}
+
+	trimmed := strings.TrimSpace(string(body))
+	if trimmed == "" {
+		return fmt.Errorf("empty response body")
+	}
+
+	var generic map[string]interface{}
+	if err := json.Unmarshal(body, &generic); err != nil {
+		snippet := trimmed
+		if len(snippet) > 200 {
+			snippet = snippet[:200]
+		}
+		return fmt.Errorf("non-json response body: %q", snippet)
+	}
+	if _, ok := generic["error"]; ok {
+		return fmt.Errorf("response contains error field")
+	}
+	return nil
+}
+
+func resolveAPIConfig(apiBase, model, formatHint, endpointHint string) (string, string, error) {
+	base := canonicalBaseURL(apiBase)
+	cacheKey := base + "||" + strings.TrimSpace(model)
+	cache := loadAPIConfigCache(apiConfigCache)
+
+	if entry, ok := cache[cacheKey]; ok && entry.Format != "" && entry.Endpoint != "" {
+		log.Printf("Trying cached API config for [%s]: %s @ %s", cacheKey, entry.Format, entry.Endpoint)
+		if err := probeAPIConfig(entry.Format, entry.Endpoint, apiKeys[0], model); err == nil {
+			return entry.Format, entry.Endpoint, nil
+		}
+		log.Printf("Cached config failed for [%s], will rediscover", cacheKey)
+	}
+
+	candidates := buildAPICandidates(base, formatHint, endpointHint)
+	if len(candidates) == 0 {
+		return "", "", fmt.Errorf("no API endpoint candidates generated")
+	}
+
+	var lastErr error
+	for _, c := range candidates {
+		log.Printf("Probing API config: %s @ %s", c.Format, c.Endpoint)
+		if err := probeAPIConfig(c.Format, c.Endpoint, apiKeys[0], model); err != nil {
+			lastErr = err
+			log.Printf("Probe failed: %v", err)
+			continue
+		}
+		cache[cacheKey] = APIConfigEntry{
+			Format:    c.Format,
+			Endpoint:  c.Endpoint,
+			UpdatedAt: time.Now().Format(time.RFC3339),
+		}
+		saveAPIConfigCache(apiConfigCache, cache)
+		log.Printf("Selected API config: %s @ %s", c.Format, c.Endpoint)
+		return c.Format, c.Endpoint, nil
+	}
+	if lastErr == nil {
+		lastErr = fmt.Errorf("all candidates failed")
+	}
+	return "", "", fmt.Errorf("failed to resolve API config for %s: %w", cacheKey, lastErr)
+}
+
+func getAPIConfig() (string, string) {
+	apiCfgMu.RLock()
+	defer apiCfgMu.RUnlock()
+	return apiFormat, apiEndpoint
+}
+
+func setAPIConfig(format, endpoint string) {
+	apiCfgMu.Lock()
+	defer apiCfgMu.Unlock()
+	apiFormat = format
+	apiEndpoint = endpoint
+}
+
+func endpointBaseFromResolved(endpoint string) string {
+	ep := strings.TrimRight(strings.TrimSpace(endpoint), "/")
+	switch {
+	case strings.HasSuffix(ep, "/v1/chat/completions"):
+		return strings.TrimSuffix(ep, "/v1/chat/completions")
+	case strings.HasSuffix(ep, "/chat/completions"):
+		return strings.TrimSuffix(ep, "/chat/completions")
+	case strings.HasSuffix(ep, "/v1/responses"):
+		return strings.TrimSuffix(ep, "/v1/responses")
+	case strings.HasSuffix(ep, "/responses"):
+		return strings.TrimSuffix(ep, "/responses")
+	case strings.HasSuffix(ep, "/v1/messages"):
+		return strings.TrimSuffix(ep, "/v1/messages")
+	case strings.HasSuffix(ep, "/messages"):
+		return strings.TrimSuffix(ep, "/messages")
+	default:
+		return ep
+	}
+}
+
+func switchResponsesToChatIfHealthy(reason string) bool {
+	if noChatMode.Load() {
+		return false
+	}
+	format, endpoint := getAPIConfig()
+	if format != "openai-responses" {
+		return false
+	}
+	base := endpointBaseFromResolved(endpoint)
+	chatEndpoint := defaultEndpointForFormat(base, "openai-chat")
+	if chatEndpoint == "" || chatEndpoint == endpoint {
+		return false
+	}
+	if err := probeAPIConfig("openai-chat", chatEndpoint, apiKeys[0], apiModel); err != nil {
+		log.Printf("Chat fallback probe failed: %v", err)
+		errText := strings.ToLower(err.Error())
+		if strings.Contains(errText, "unsupported legacy protocol") || strings.Contains(errText, "chat/completions is not supported") {
+			noChatMode.Store(true)
+			log.Printf("Detected responses-only provider, disabling chat fallback.")
+		}
+		return false
+	}
+	setAPIConfig("openai-chat", chatEndpoint)
+	log.Printf("Switched API config to openai-chat @ %s due to: %s", chatEndpoint, reason)
+	return true
+}
+
+func switchResponsesEndpointIfHealthy(reason string) bool {
+	format, endpoint := getAPIConfig()
+	if format != "openai-responses" {
+		return false
+	}
+
+	base := endpointBaseFromResolved(endpoint)
+	var candidates []string
+	add := func(s string) {
+		s = strings.TrimRight(strings.TrimSpace(s), "/")
+		if s == "" || s == endpoint {
+			return
+		}
+		for _, e := range candidates {
+			if e == s {
+				return
+			}
+		}
+		candidates = append(candidates, s)
+	}
+
+	add(defaultEndpointForFormat(base, "openai-responses"))
+	if strings.HasSuffix(endpoint, "/v1/responses") {
+		add(base + "/responses")
+	} else if strings.HasSuffix(endpoint, "/responses") {
+		add(base + "/v1/responses")
+	}
+
+	for _, cand := range candidates {
+		if err := probeAPIConfig("openai-responses", cand, apiKeys[0], apiModel); err != nil {
+			log.Printf("Responses endpoint switch probe failed (%s): %v", cand, err)
+			continue
+		}
+		setAPIConfig("openai-responses", cand)
+		log.Printf("Switched API config to openai-responses @ %s due to: %s", cand, reason)
+		return true
+	}
+	return false
+}
+
+func buildReqBodyForFormat(format, systemPrompt string, messages []ChatMessage, temperature float64, maxTokens int) ([]byte, error) {
+	switch format {
+	case "openai-chat":
 		allMsgs := append([]ChatMessage{systemMsg(systemPrompt)}, messages...)
 		req := OpenAIRequest{
 			Model:       apiModel,
@@ -204,9 +614,18 @@ func apiCall(systemPrompt string, messages []ChatMessage, temperature float64, m
 			Temperature: temperature,
 			Stream:      true,
 		}
-		reqBody, _ = json.Marshal(req)
-	} else {
-		// Anthropic format: system is a separate field
+		return json.Marshal(req)
+	case "openai-responses":
+		req := OpenAIResponsesRequest{
+			Model:           apiModel,
+			Input:           toResponsesInput(systemPrompt, messages),
+			Temperature:     temperature,
+			MaxOutputTokens: maxTokens,
+			MaxTokens:       maxTokens,
+			Stream:          false,
+		}
+		return json.Marshal(req)
+	case "anthropic":
 		req := AnthropicRequest{
 			Model:       apiModel,
 			MaxTokens:   maxTokens,
@@ -214,20 +633,228 @@ func apiCall(systemPrompt string, messages []ChatMessage, temperature float64, m
 			Messages:    messages,
 			Temperature: temperature,
 		}
-		reqBody, _ = json.Marshal(req)
+		return json.Marshal(req)
+	default:
+		return nil, fmt.Errorf("unsupported api format: %s", format)
+	}
+}
+
+func appendWithSep(dst *string, v string) {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return
+	}
+	if *dst == "" {
+		*dst = v
+		return
+	}
+	*dst += "\n" + v
+}
+
+func flattenText(v interface{}) string {
+	switch vv := v.(type) {
+	case string:
+		return vv
+	case []interface{}:
+		var out string
+		for _, item := range vv {
+			appendWithSep(&out, flattenText(item))
+		}
+		return out
+	case map[string]interface{}:
+		if text, ok := vv["text"].(string); ok && text != "" {
+			return text
+		}
+		if delta, ok := vv["delta"].(string); ok && delta != "" {
+			return delta
+		}
+		if content, ok := vv["content"]; ok {
+			return flattenText(content)
+		}
+	}
+	return ""
+}
+
+func parseContentBlocks(v interface{}) (reasoning string, content string) {
+	switch vv := v.(type) {
+	case string:
+		appendWithSep(&content, vv)
+	case []interface{}:
+		for _, item := range vv {
+			r, c := parseContentBlocks(item)
+			appendWithSep(&reasoning, r)
+			appendWithSep(&content, c)
+		}
+	case map[string]interface{}:
+		t, _ := vv["type"].(string)
+		t = strings.ToLower(strings.TrimSpace(t))
+		text := flattenText(vv)
+		switch {
+		case strings.Contains(t, "reasoning"), strings.Contains(t, "summary"):
+			appendWithSep(&reasoning, text)
+		case t == "output_text", t == "text", t == "input_text", t == "":
+			appendWithSep(&content, text)
+		default:
+			appendWithSep(&content, text)
+		}
+	}
+	return strings.TrimSpace(reasoning), strings.TrimSpace(content)
+}
+
+func combineReasoningAndContent(reasoning, content string) string {
+	reasoning = strings.TrimSpace(reasoning)
+	content = strings.TrimSpace(content)
+	if reasoning != "" && content != "" {
+		return reasoning + "\n\n" + content
+	}
+	if content != "" {
+		return content
+	}
+	return reasoning
+}
+
+func parseOpenAIChatJSON(respBody []byte) (string, error) {
+	var generic map[string]interface{}
+	if err := json.Unmarshal(respBody, &generic); err != nil {
+		return "", err
+	}
+	if _, ok := generic["error"]; ok {
+		return "", fmt.Errorf("openai chat response contains error field")
 	}
 
+	var reasoning, content string
+	choices, _ := generic["choices"].([]interface{})
+	if len(choices) == 0 {
+		return "", fmt.Errorf("no choices found")
+	}
+	choice, _ := choices[0].(map[string]interface{})
+	msg, _ := choice["message"].(map[string]interface{})
+	if msg != nil {
+		if rc, ok := msg["reasoning_content"].(string); ok {
+			appendWithSep(&reasoning, rc)
+		}
+		if c, ok := msg["content"].(string); ok {
+			appendWithSep(&content, c)
+		} else if cAny, ok := msg["content"]; ok {
+			r, c := parseContentBlocks(cAny)
+			appendWithSep(&reasoning, r)
+			appendWithSep(&content, c)
+		}
+	}
+	result := combineReasoningAndContent(reasoning, content)
+	if strings.TrimSpace(result) == "" {
+		return "", fmt.Errorf("empty choices message")
+	}
+	return result, nil
+}
+
+func parseOpenAIResponsesJSON(respBody []byte) (string, error) {
+	var generic map[string]interface{}
+	if err := json.Unmarshal(respBody, &generic); err != nil {
+		return "", err
+	}
+	if _, ok := generic["error"]; ok {
+		return "", fmt.Errorf("responses payload contains error field")
+	}
+
+	var reasoning, content string
+	if outText, ok := generic["output_text"]; ok {
+		appendWithSep(&content, flattenText(outText))
+	}
+
+	if output, ok := generic["output"].([]interface{}); ok {
+		for _, item := range output {
+			m, ok := item.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			t, _ := m["type"].(string)
+			t = strings.ToLower(strings.TrimSpace(t))
+			switch t {
+			case "reasoning":
+				if summary, ok := m["summary"]; ok {
+					r, c := parseContentBlocks(summary)
+					appendWithSep(&reasoning, r)
+					appendWithSep(&reasoning, c)
+				}
+				if blocks, ok := m["content"]; ok {
+					r, c := parseContentBlocks(blocks)
+					appendWithSep(&reasoning, r)
+					appendWithSep(&reasoning, c)
+				}
+			default:
+				if blocks, ok := m["content"]; ok {
+					r, c := parseContentBlocks(blocks)
+					appendWithSep(&reasoning, r)
+					appendWithSep(&content, c)
+				}
+			}
+		}
+	}
+
+	result := combineReasoningAndContent(reasoning, content)
+	if strings.TrimSpace(result) != "" {
+		return result, nil
+	}
+
+	// Some gateways reply with chat-completions schema even on /responses.
+	return parseOpenAIChatJSON(respBody)
+}
+
+func chatMessageText(content interface{}) string {
+	switch v := content.(type) {
+	case string:
+		return v
+	default:
+		text := flattenText(v)
+		if text != "" {
+			return text
+		}
+		b, _ := json.Marshal(v)
+		return string(b)
+	}
+}
+
+func toResponsesInput(systemPrompt string, messages []ChatMessage) []OpenAIResponsesInputItem {
+	var input []OpenAIResponsesInputItem
+	if strings.TrimSpace(systemPrompt) != "" {
+		input = append(input, OpenAIResponsesInputItem{
+			Role:    "system",
+			Content: []OpenAIResponsesInputText{{Type: "input_text", Text: systemPrompt}},
+		})
+	}
+	for _, msg := range messages {
+		text := chatMessageText(msg.Content)
+		role := strings.TrimSpace(msg.Role)
+		if role == "" {
+			role = "user"
+		}
+		input = append(input, OpenAIResponsesInputItem{
+			Role:    role,
+			Content: []OpenAIResponsesInputText{{Type: "input_text", Text: text}},
+		})
+	}
+	return input
+}
+
+// === API call (supports Anthropic / OpenAI Chat / OpenAI Responses) ===
+func apiCall(systemPrompt string, messages []ChatMessage, temperature float64, maxTokens int) (string, error) {
 	for attempt := 0; attempt < maxAPIRetries; attempt++ {
 		if shutdown.Load() {
 			return "", fmt.Errorf("shutdown requested")
 		}
+		format, endpoint := getAPIConfig()
+		reqBody, err := buildReqBodyForFormat(format, systemPrompt, messages, temperature, maxTokens)
+		if err != nil {
+			return "", err
+		}
 		key := nextKey()
-		req, err := http.NewRequest("POST", apiEndpoint, strings.NewReader(string(reqBody)))
+		req, err := http.NewRequest("POST", endpoint, strings.NewReader(string(reqBody)))
 		if err != nil {
 			return "", err
 		}
 
-		if apiFormat == "openai" {
+		if format == "openai-chat" || format == "openai-responses" {
 			req.Header.Set("Authorization", "Bearer "+key)
 		} else {
 			req.Header.Set("x-api-key", key)
@@ -261,7 +888,7 @@ func apiCall(systemPrompt string, messages []ChatMessage, temperature float64, m
 
 		var result string
 
-		if apiFormat == "openai" {
+		if format == "openai-chat" {
 			var reasoning, content string
 			scanner := bufio.NewScanner(resp.Body)
 			scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
@@ -284,13 +911,41 @@ func apiCall(systemPrompt string, messages []ChatMessage, temperature float64, m
 					content += delta.Content
 				}
 			}
-			resp.Body.Close()
-			result = reasoning
-			if result != "" && content != "" {
-				result += "\n\n" + content
-			} else if content != "" {
-				result = content
+			if err := scanner.Err(); err != nil {
+				resp.Body.Close()
+				delay := retryDelay * time.Duration(math.Pow(2, float64(attempt)))
+				log.Printf("  Stream parse error (attempt %d/%d): %v. Retrying in %v...", attempt+1, maxAPIRetries, err, delay)
+				time.Sleep(delay)
+				continue
 			}
+			resp.Body.Close()
+			result = combineReasoningAndContent(reasoning, content)
+		} else if format == "openai-responses" {
+			respBody, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			parsed, err := parseOpenAIResponsesJSON(respBody)
+			if err != nil {
+				bodyTrim := strings.TrimSpace(string(respBody))
+				preview := bodyTrim
+				if len(preview) > 120 {
+					preview = preview[:120]
+				}
+				if strings.HasPrefix(strings.ToLower(bodyTrim), "<!doctype html") || strings.HasPrefix(bodyTrim, "<") {
+					if switchResponsesEndpointIfHealthy("responses endpoint returned HTML") {
+						log.Printf("  Responses returned HTML, switched to alternate /responses endpoint and retrying immediately.")
+						continue
+					}
+					if switchResponsesToChatIfHealthy("responses endpoint returned HTML") {
+						log.Printf("  Responses returned HTML, switched to chat/completions and retrying immediately.")
+						continue
+					}
+				}
+				delay := retryDelay * time.Duration(math.Pow(2, float64(attempt)))
+				log.Printf("  Responses parse error (attempt %d/%d): %v. Body preview: %q. Retrying in %v...", attempt+1, maxAPIRetries, err, preview, delay)
+				time.Sleep(delay)
+				continue
+			}
+			result = parsed
 		} else {
 			var apiResp AnthropicResponse
 			respBody, _ := io.ReadAll(resp.Body)
@@ -310,12 +965,7 @@ func apiCall(systemPrompt string, messages []ChatMessage, temperature float64, m
 					text += block.Text
 				}
 			}
-			result = thinking
-			if result != "" && text != "" {
-				result += "\n\n" + text
-			} else if text != "" {
-				result = text
-			}
+			result = combineReasoningAndContent(thinking, text)
 		}
 
 		if result == "" {
@@ -689,9 +1339,27 @@ func main() {
 		baseDir = filepath.Dir(exe)
 	}
 
+	outputDir = filepath.Join(baseDir, "cot_output")
+	checkpointFile = filepath.Join(outputDir, "checkpoint.json")
+	rawCotDir = filepath.Join(outputDir, "raw_cot")
+	distilledCotDir = filepath.Join(outputDir, "distilled_cot")
+	techniquesDir = filepath.Join(outputDir, "techniques")
+	apiConfigCache = filepath.Join(outputDir, "api_config_cache.json")
+
+	for _, d := range []string{outputDir, rawCotDir, distilledCotDir, techniquesDir} {
+		_ = os.MkdirAll(d, 0755)
+	}
+
 	// Load env file
 	envFile := *envFlag
-	env, extraKeys := loadEnv(filepath.Join(baseDir, envFile))
+	envPath := filepath.Join(baseDir, envFile)
+	if _, err := os.Stat(envPath); err != nil && envFile == ".env" {
+		fallback := filepath.Join(baseDir, ".env2")
+		if _, ferr := os.Stat(fallback); ferr == nil {
+			envPath = fallback
+		}
+	}
+	env, extraKeys := loadEnv(envPath)
 	apiBase := env["API_BASE_URL"]
 	if apiBase == "" {
 		apiBase = os.Getenv("API_BASE_URL")
@@ -704,38 +1372,32 @@ func main() {
 	if primary == "" {
 		primary = os.Getenv("API_KEY")
 	}
+
 	// Build key pool: primary key + all extra keys
-	apiKeys = []string{primary}
-	apiKeys = append(apiKeys, extraKeys...)
-	// Detect API format from base URL
-	apiBase = strings.TrimRight(apiBase, "/")
-	if strings.Contains(apiBase, "/anthropic") {
-		apiFormat = "anthropic"
-		apiEndpoint = apiBase + "/v1/messages"
-	} else {
-		apiFormat = "openai"
-		if strings.HasSuffix(apiBase, "/v1") || strings.Contains(apiBase, "/v1/") {
-			apiEndpoint = apiBase + "/chat/completions"
-		} else {
-			apiEndpoint = apiBase + "/v1/chat/completions"
+	apiKeys = []string{}
+	if strings.TrimSpace(primary) != "" {
+		apiKeys = append(apiKeys, strings.TrimSpace(primary))
+	}
+	for _, k := range extraKeys {
+		if kk := strings.TrimSpace(k); kk != "" {
+			apiKeys = append(apiKeys, kk)
 		}
 	}
 
-	if apiBase == "" || apiModel == "" || len(apiKeys) == 0 || apiKeys[0] == "" {
-		log.Fatal("Please fill in .env file with API_BASE_URL, API_MODEL, API_KEY")
+	formatHint := env["API_FORMAT"]
+	if formatHint == "" {
+		formatHint = os.Getenv("API_FORMAT")
+	}
+	endpointHint := env["API_ENDPOINT"]
+	if endpointHint == "" {
+		endpointHint = os.Getenv("API_ENDPOINT")
 	}
 
-	outputDir = filepath.Join(baseDir, "cot_output")
-	checkpointFile = filepath.Join(outputDir, "checkpoint.json")
-	rawCotDir = filepath.Join(outputDir, "raw_cot")
-	distilledCotDir = filepath.Join(outputDir, "distilled_cot")
-	techniquesDir = filepath.Join(outputDir, "techniques")
-
-	for _, d := range []string{outputDir, rawCotDir, distilledCotDir, techniquesDir} {
-		os.MkdirAll(d, 0755)
+	if apiBase == "" || apiModel == "" || len(apiKeys) == 0 {
+		log.Fatal("Please fill in .env/.env2 with API_BASE_URL, API_MODEL, API_KEY")
 	}
 
-	// Setup logging
+	// Setup logging before endpoint probing so discovery logs are persisted.
 	logFile, err := os.OpenFile(filepath.Join(outputDir, "generation.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err == nil {
 		log.SetOutput(io.MultiWriter(os.Stdout, logFile))
@@ -749,6 +1411,14 @@ func main() {
 		IdleConnTimeout:     90 * time.Second,
 	}
 	httpClient = &http.Client{Timeout: apiTimeout, Transport: transport}
+
+	resolvedFormat, resolvedEndpoint, err := resolveAPIConfig(apiBase, apiModel, formatHint, endpointHint)
+	if err != nil {
+		log.Fatalf("Failed to resolve API endpoint/format: %v", err)
+	}
+	setAPIConfig(resolvedFormat, resolvedEndpoint)
+	log.Printf("Loaded env file: %s", envPath)
+	log.Printf("Resolved API config: %s @ %s", resolvedFormat, resolvedEndpoint)
 
 	// Graceful shutdown
 	sigCh := make(chan os.Signal, 1)
@@ -770,7 +1440,8 @@ func main() {
 	}
 	total := len(problems)
 	log.Printf("Loaded %d problems (limit=%d, workers=%d)", total, *limitFlag, *workersFlag)
-	log.Printf("Using model: %s @ %s (with %d API keys)", apiModel, apiEndpoint, len(apiKeys))
+	_, activeEndpoint := getAPIConfig()
+	log.Printf("Using model: %s @ %s (with %d API keys)", apiModel, activeEndpoint, len(apiKeys))
 
 	ckpt := loadCheckpoint()
 	log.Printf("Checkpoint: %d solved, %d distilled, %d techniques",
