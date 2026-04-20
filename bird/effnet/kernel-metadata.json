@@ -1,0 +1,18 @@
+{
+  "id": "liucong/effnetv1",
+  "title": "effnetv1",
+  "code_file": "effnetv1.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "competition_sources": ["birdclef-2026"],
+  "dataset_sources": [
+    "smartorz/full-perch-spectrograms-fp16",
+    "smartorz/mixupcache",
+    "smartorz/my-perch-label"
+  ],
+  "model_sources": ["google/bird-vocalization-classifier/tensorFlow2/perch-v2-cpu"],
+  "keywords": ["efficientnet", "bird", "classification"]
+}
