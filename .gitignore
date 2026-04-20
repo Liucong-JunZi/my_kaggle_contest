@@ -9,3 +9,10 @@ nvidia-nemotron-model-reasoning-challenge/cot_output/
 cot_output/
 .DS_Store
 .claude/
+
+# Large artifacts/binaries: keep local, do not track in Git
+nvidia-nemotron-model-reasoning-challenge/final_Nemotron_training_data.jsonl
+nvidia-nemotron-model-reasoning-challenge/kaggle_dataset_distilled/final_Nemotron_training_data.jsonl
+nvidia-nemotron-model-reasoning-challenge/cot-generator
+nvidia-nemotron-model-reasoning-challenge/generate_cot
+nvidia-nemotron-model-reasoning-challenge/cot_output/generation.log
