@@ -1,18 +1,16 @@
 {
-  "id": "liucong/effnetv1",
-  "title": "effnetv1",
-  "code_file": "effnetv1.py",
+  "id": "smartorz/effnetv4-masked",
+  "title": "effnetv4-masked",
+  "code_file": "effnetv4.py",
   "language": "python",
   "kernel_type": "script",
   "is_private": "true",
-  "enable_gpu": "true",
+  "enable_gpu": "false",
   "enable_internet": "true",
   "competition_sources": ["birdclef-2026"],
   "dataset_sources": [
-    "smartorz/full-perch-spectrograms-fp16",
-    "smartorz/mixupcache",
-    "smartorz/my-perch-label"
+    "smartorz/train-audio-masked"
   ],
-  "model_sources": ["google/bird-vocalization-classifier/tensorFlow2/perch-v2-cpu"],
-  "keywords": ["efficientnet", "bird", "classification"]
+  "model_sources": ["timm/tf-efficientnet/pytorch/tf-efficientnet-b3/1"],
+  "keywords": ["effnet", "masked", "training"]
 }
