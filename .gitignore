@@ -16,5 +16,6 @@ nvidia-nemotron-model-reasoning-challenge/kaggle_dataset_distilled/final_Nemotro
 nvidia-nemotron-model-reasoning-challenge/cot-generator
 nvidia-nemotron-model-reasoning-challenge/generate_cot
 nvidia-nemotron-model-reasoning-challenge/cot_output/generation.log
-/Users/liucong/code/kaggle/cot_output.zip
+kaggle/cot_output.zip
 bird/
+ROGII/rogii-wellbore-geology-prediction/
