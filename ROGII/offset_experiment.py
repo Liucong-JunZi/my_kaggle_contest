@@ -1,15 +1,18 @@
 """
-偏差多项式实验：用 dx, dy, dz 的初等函数组合逼近 dtvt + dz
+偏差多项式实验 v5：轻量自回归
 
-核心发现：
-- dtvt ≈ -dz + bias（bias 是每步的系统性偏差）
-- 地层平坦时 bias ≈ 0，倾斜时 bias 有一个小的常数偏移
-- 如果能准确估计这个 bias，cumsum(-dz + bias) 能很好预测 TVT
+核心发现 (v3)：
+  - 滑动窗口特征 (dx,dy,dz)  → 无改善 (20.72)
+  - bias历史特征 (作弊)        → 0.58  (知道history=作弊)
 
-hengck23 报告：
-- Oracle (知道正确全局 offset): ~7.64 RMSE
-- 已知段 offset: ~37-39 RMSE
-- fold-safe selector: ~14.8 RMSE
+解决思路：
+  测试段第 i 步的 bias 预测 = f(trajectory[i], bias[i-1], bias[i-5], bias[i-20])
+
+  其中 bias[i-1] 是第 i-1 步的预测值（自回归）
+  bias[i-5], bias[i-20] 来自已知段或已预测区间
+
+  模型: 用已知段训练，已知段有完整 bias 序列
+  推断: PS 之后逐步预测，用上一步 pred_bias 作为下一步的特征
 """
 
 import pandas as pd
@@ -17,139 +20,100 @@ import numpy as np
 import glob
 from sklearn.preprocessing import StandardScaler
 
-# ============================================================
-# 配置
-# ============================================================
 TRAIN_DIR = '/Users/liucong/code/kaggle/ROGII/rogii-wellbore-geology-prediction/train'
-MAX_WELLS = None  # None = 全部井
+MAX_WELLS = None
 
 
-def build_features(dx, dy, dz, dmd):
+def add(features, name, feature, clip_val=100):
+    f = np.clip(np.asarray(feature, dtype=np.float64), -clip_val, clip_val)
+    f = np.where(np.isfinite(f), f, 0)
+    features.append(f)
+    return name
+
+
+def create_lagged_bias(bias_seq, lags=[1, 5, 10, 20, 50]):
+    """从 bias 序列创建滞后特征。前几个点用 0 填充。"""
+    n = len(bias_seq)
+    result = np.zeros((n, len(lags)))
+    for col, lag in enumerate(lags):
+        result[lag:, col] = bias_seq[:-lag]
+        # 前 lag 个点：用第一个已知值填充
+        if len(bias_seq) > 0:
+            first_val = bias_seq[0]
+            result[:lag, col] = first_val
+    return result
+
+
+def build_features_v5(dx, dy, dz, dmd, bias_seq=None):
     """
-    构建初等函数组合特征。每项是一个初等函数，带一个系数（通过线性回归学习）。
-
-    特征包括：线性、平方、平方根、对数、交互、混合根式、符号、指数、atan、比值、立方、绝对值
+    bias_seq: 完整 bias 序列（训练时真实，测试时逐步填入预测值）
+    如果 None，滞后特征全部为 0（退化版）
     """
     eps = 1e-6
     features = []
     names = []
 
-    def add(feature, name, clip_val=100):
-        """安全添加特征：裁剪极端值"""
-        f = np.clip(np.asarray(feature, dtype=np.float64), -clip_val, clip_val)
-        # 额外检查：替换 NaN/Inf
-        f = np.where(np.isfinite(f), f, 0)
-        features.append(f)
-        names.append(name)
+    # ====== 瞬时（仅关键特征） ======
+    for name, val, cl in [('dx', dx, 100), ('dy', dy, 100), ('dz', dz, 100), ('dmd', dmd, 10)]:
+        names.append(add(features, name, val, cl))
+    names.append(add(features, '|dx|', np.abs(dx)))
+    names.append(add(features, '|dy|', np.abs(dy)))
+    names.append(add(features, '|dz|', np.abs(dz)))
+    names.append(add(features, 'sign(dx)', np.sign(dx), 1))
+    names.append(add(features, 'sign(dy)', np.sign(dy), 1))
+    names.append(add(features, 'sign(dz)', np.sign(dz), 1))
+    names.append(add(features, 'atan(dx)', np.arctan(dx), 2))
+    names.append(add(features, 'atan(dy)', np.arctan(dy), 2))
+    names.append(add(features, 'atan(dz)', np.arctan(dz), 2))
+    names.append(add(features, 'dx*dz', dx * dz, 1000))
+    names.append(add(features, 'dy*dz', dy * dz, 1000))
+    names.append(add(features, 'dx^2', dx**2, 10000))
+    names.append(add(features, 'dz^2', dz**2, 10000))
 
-    # 1. 线性项
-    add(dx, 'dx', 100)
-    add(dy, 'dy', 100)
-    add(dz, 'dz', 100)
-    add(dmd, 'dmd', 10)
+    # ====== 加速度 ======
+    d2z = np.gradient(dz)
+    names.append(add(features, 'd2z', d2z, 100))
 
-    # 2. 平方项
-    add(dx**2, 'dx^2', 10000)
-    add(dy**2, 'dy^2', 10000)
-    add(dz**2, 'dz^2', 10000)
+    # ====== ★ 关键：bias 滞后特征 ======
+    if bias_seq is not None:
+        lags = [1, 5, 10, 20, 50]
+        lagged = create_lagged_bias(bias_seq, lags)
+        for col, lag in enumerate(lags):
+            names.append(add(features, f'bias_lag{lag}', lagged[:, col]))
 
-    # 3. 平方根项
-    add(np.sqrt(np.abs(dx) + eps), 'sqrt|dx|', 50)
-    add(np.sqrt(np.abs(dy) + eps), 'sqrt|dy|', 50)
-    add(np.sqrt(np.abs(dz) + eps), 'sqrt|dz|', 50)
+        # bias 趋势 = bias 的近期变化
+        # delta = bias[i] - bias[i-20]
+        delta = np.zeros(len(bias_seq))
+        delta[20:] = bias_seq[20:] - bias_seq[:-20]
+        delta[:20] = bias_seq[:20] - bias_seq[0]
+        names.append(add(features, 'bias_delta20', delta))
 
-    # 4. 对数项
-    add(np.log1p(np.abs(dx)), 'log1p|dx|', 10)
-    add(np.log1p(np.abs(dy)), 'log1p|dy|', 10)
-    add(np.log1p(np.abs(dz)), 'log1p|dz|', 10)
-
-    # 5. 交互项（乘积）
-    add(dx * dy, 'dx*dy', 1000)
-    add(dx * dz, 'dx*dz', 1000)
-    add(dy * dz, 'dy*dz', 1000)
-    add(dx * dmd, 'dx*dmd', 100)
-    add(dy * dmd, 'dy*dmd', 100)
-    add(dz * dmd, 'dz*dmd', 100)
-
-    # 6. 混合根式
-    add(np.sqrt(dx**2 + dy**2 + eps), 'sqrt(dx^2+dy^2)', 100)
-    add(np.sqrt(dx**2 + dz**2 + eps), 'sqrt(dx^2+dz^2)', 100)
-    add(np.sqrt(dy**2 + dz**2 + eps), 'sqrt(dy^2+dz^2)', 100)
-    add(np.sqrt(dx**2 + dy**2 + dz**2 + eps), 'sqrt(dx^2+dy^2+dz^2)', 100)
-
-    # 7. 符号交互
-    add(np.sign(dx) * np.sign(dz), 'sign(dx)*sign(dz)', 1)
-    add(np.sign(dy) * np.sign(dz), 'sign(dy)*sign(dz)', 1)
-
-    # 8. 指数项（安全的）
-    add(np.exp(-np.clip(np.abs(dx), 0, 10)), 'exp(-|dx|)', 1)
-    add(np.exp(-np.clip(np.abs(dy), 0, 10)), 'exp(-|dy|)', 1)
-    add(np.exp(-np.clip(np.abs(dz), 0, 10)), 'exp(-|dz|)', 1)
-
-    # 9. atan（压缩大范围）
-    add(np.arctan(dx), 'atan(dx)', 2)
-    add(np.arctan(dy), 'atan(dy)', 2)
-    add(np.arctan(dz), 'atan(dz)', 2)
-
-    # 10. 安全比值
-    add(dx / (np.abs(dz) + 1), 'dx/(|dz|+1)', 100)
-    add(dy / (np.abs(dz) + 1), 'dy/(|dz|+1)', 100)
-    add(dz / (np.abs(dx) + 1), 'dz/(|dx|+1)', 100)
-
-    # 11. 立方
-    add(dx**3, 'dx^3', 1e6)
-    add(dy**3, 'dy^3', 1e6)
-    add(dz**3, 'dz^3', 1e6)
-
-    # 12. 绝对值
-    add(np.abs(dx), '|dx|', 100)
-    add(np.abs(dy), '|dy|', 100)
-    add(np.abs(dz), '|dz|', 100)
-
-    # 13. 方向
-    add(np.sign(dx), 'sign(dx)', 1)
-    add(np.sign(dy), 'sign(dy)', 1)
-    add(np.sign(dz), 'sign(dz)', 1)
+        # bias 加速度
+        if len(bias_seq) > 2:
+            d2 = np.gradient(bias_seq)
+            names.append(add(features, 'bias_d2', d2))
 
     return np.column_stack(features), names
 
 
 def load_well_data(f):
-    """加载单井数据并计算梯度"""
     df = pd.read_csv(f)
     ps = df['TVT_input'].notna().sum()
-
-    h_x = df['X'].values
-    h_y = df['Y'].values
-    h_z = df['Z'].values
-    h_md = df['MD'].values
-    h_tvt = df['TVT'].values
-
-    dx = np.gradient(h_x)
-    dy = np.gradient(h_y)
-    dz = np.gradient(h_z)
-    dmd = np.gradient(h_md)
-    dtvt = np.gradient(h_tvt)
-
     return {
         'ps': ps, 'n': len(df),
-        'x': h_x, 'y': h_y, 'z': h_z, 'md': h_md, 'tvt': h_tvt,
-        'dx': dx, 'dy': dy, 'dz': dz, 'dmd': dmd, 'dtvt': dtvt,
-        'target': dtvt + dz  # 每步偏差 = dtvt + dz
+        'z': df['Z'].values, 'md': df['MD'].values,
+        'tvt': df['TVT'].values,
+        'dx': np.gradient(df['X'].values),
+        'dy': np.gradient(df['Y'].values),
+        'dz': np.gradient(df['Z'].values),
+        'dmd': np.gradient(df['MD'].values),
+        'dtvt': np.gradient(df['TVT'].values),
+        'target': np.gradient(df['TVT'].values) + np.gradient(df['Z'].values)
     }
 
 
 def predict_tvt_cumsum(start_tvt, dz, bias):
-    """
-    用 cumsum(-dz + bias) 方法预测 TVT
-
-    pred[i] = pred[i-1] + (-dz[i] + bias[i])
-
-    dz 和 bias 应该是已经切片的水平段数据（长度相同）
-    """
     n = len(dz)
-    assert len(bias) == n, f"dz length {n} != bias length {len(bias)}"
-
     pred = np.zeros(n)
     pred[0] = start_tvt + (-dz[0] + bias[0])
     for i in range(1, n):
@@ -157,57 +121,31 @@ def predict_tvt_cumsum(start_tvt, dz, bias):
     return pred
 
 
-def evaluate_methods(wells, well_indices):
-    """评估三种方法：Oracle、常数 bias、ML bias"""
-    oracle_rmses = []
-    const_rmses = []
-    ml_rmses = []
+class RidgeModel:
+    def __init__(self, alpha=1.0):
+        self.alpha = alpha
+        self.scaler = StandardScaler()
+        self.weights = None
 
-    for idx in well_indices:
-        w = wells[idx]
-        ps = w['ps']
-        n_lateral = w['n'] - ps
+    def fit(self, X, y):
+        X_s = self.scaler.fit_transform(X)
+        X_bias = np.column_stack([np.ones(len(X_s)), X_s])
+        XtX = X_bias.T @ X_bias
+        XtX[np.arange(XtX.shape[0]), np.arange(XtX.shape[0])] += self.alpha
+        Xty = X_bias.T @ y
+        self.weights = np.linalg.solve(XtX, Xty)
 
-        if n_lateral < 100:
-            continue
-
-        start_tvt = w['tvt'][ps - 1]
-        true_tvt = w['tvt'][ps:]
-
-        l_dz = w['dz'][ps:]
-
-        # --- Oracle: 搜索最佳标量 bias ---
-        best_rmse = float('inf')
-        best_bias = 0
-        for b in np.arange(-0.1, 0.1, 0.0005):
-            pred = predict_tvt_cumsum(start_tvt, l_dz, np.full(n_lateral, b))
-            rmse = np.sqrt(np.mean((pred - true_tvt)**2))
-            if rmse < best_rmse:
-                best_rmse = rmse
-                best_bias = b
-        oracle_rmses.append(best_rmse)
-
-        # --- 常数 bias: 用已知段均值 ---
-        const_bias = w['target'][ps - 200:ps].mean()
-        pred = predict_tvt_cumsum(start_tvt, l_dz, np.full(n_lateral, const_bias))
-        const_rmses.append(np.sqrt(np.mean((pred - true_tvt)**2)))
-
-        # --- ML bias: 用训练的模型预测 ---
-        # (需要在外部传入模型)
-        ml_rmses.append(None)
-
-    return {
-        'oracle': np.array(oracle_rmses),
-        'const': np.array(const_rmses),
-    }
+    def predict(self, X):
+        X_s = self.scaler.transform(X)
+        X_bias = np.column_stack([np.ones(len(X_s)), X_s])
+        return X_bias @ self.weights
 
 
 def main():
     print("=" * 70)
-    print("偏差多项式实验")
+    print("偏差多项式实验 v5：轻量自回归")
     print("=" * 70)
 
-    # 加载所有井
     files = sorted(glob.glob(f'{TRAIN_DIR}/*__horizontal_well.csv'))
     if MAX_WELLS:
         files = files[:MAX_WELLS]
@@ -218,15 +156,7 @@ def main():
         w = load_well_data(f)
         if w['ps'] >= 10 and w['ps'] < w['n'] - 100:
             wells.append(w)
-
     print(f"有效井数: {len(wells)}")
-
-    # ============================================================
-    # 步骤 1: 基础评估（Oracle + 常数 bias）
-    # ============================================================
-    print(f"\n{'='*70}")
-    print("步骤 1: Oracle vs 常数 bias（无需 ML）")
-    print(f"{'='*70}")
 
     n_wells = len(wells)
     n_train = int(0.8 * n_wells)
@@ -234,80 +164,56 @@ def main():
     train_idx = indices[:n_train]
     val_idx = indices[n_train:]
 
-    results = evaluate_methods(wells, val_idx)
-
-    print(f"\n验证集 ({len(val_idx)} 口井):")
-    print(f"  Oracle (搜索最佳标量 bias): 均值={results['oracle'].mean():.2f}, 中位数={np.median(results['oracle']):.2f}")
-    print(f"  常数 bias (已知段200点均值): 均值={results['const'].mean():.2f}, 中位数={np.median(results['const']):.2f}")
-
-    # ============================================================
-    # 步骤 2: 收集 ML 训练数据
-    # ============================================================
+    # ================================================================
+    # 训练：用真实 bias 序列
+    # ================================================================
     print(f"\n{'='*70}")
-    print("步骤 2: 训练偏差多项式（线性回归）")
+    print("训练模型（真实 bias 序列作特征）")
     print(f"{'='*70}")
 
-    X_list = []
-    y_list = []
-
+    X_list, y_list = [], []
     for idx in train_idx:
         w = wells[idx]
         ps = w['ps']
-
-        # 只用已知段训练（严格无泄漏）
-        known = slice(ps - 300, ps)
-
-        X, feature_names = build_features(
-            w['dx'][known], w['dy'][known], w['dz'][known], w['dmd'][known]
+        ts = slice(max(0, ps - 300), ps)
+        X, _ = build_features_v5(
+            w['dx'][ts], w['dy'][ts], w['dz'][ts], w['dmd'][ts],
+            bias_seq=w['target'][ts]
         )
-        y = w['target'][known]
-
         X_list.append(X)
-        y_list.append(y)
+        y_list.append(w['target'][ts])
 
     X_train = np.vstack(X_list)
     y_train = np.concatenate(y_list)
 
-    print(f"训练样本: {len(y_train)}, 特征数: {X_train.shape[1]}")
-    print(f"目标 (dtvt+dz) 均值: {y_train.mean():.6f}, 标准差: {y_train.std():.6f}")
+    model = RidgeModel(alpha=1.0)
+    model.fit(X_train, y_train)
+    print(f"训练完成: {len(y_train)} 样本, {X_train.shape[1]} 特征")
 
-    # 标准化 + 正规方程（数值稳定）
-    scaler = StandardScaler()
-    X_train_s = scaler.fit_transform(X_train)
-    X_bias = np.column_stack([np.ones(len(X_train_s)), X_train_s])
-
-    # Ridge 正则化解
-    alpha = 1.0
-    # (X^T X + alpha*I) w = X^T y
-    XtX = X_bias.T @ X_bias
-    XtX[np.arange(XtX.shape[0]), np.arange(XtX.shape[0])] += alpha
-    Xty = X_bias.T @ y_train
-    weights = np.linalg.solve(XtX, Xty)
-
-    print(f"训练完成。正则化 alpha={alpha}")
-
-    # 特征重要性
+    _, feat_names = build_features_v5(
+        wells[0]['dx'][:10], wells[0]['dy'][:10],
+        wells[0]['dz'][:10], wells[0]['dmd'][:10],
+        bias_seq=wells[0]['target'][:10]
+    )
     print(f"\nTop 15 特征 (按 |系数|):")
-    coef = weights[1:]  # 跳过偏置项
+    coef = model.weights[1:]
     for rank, idx in enumerate(np.argsort(np.abs(coef))[::-1][:15]):
-        print(f"  {rank+1:2d}. {feature_names[idx]:25s}: {coef[idx]:12.6f}")
+        print(f"  {rank+1:2d}. {feat_names[idx]:20s}: {coef[idx]:12.6f}")
 
-    # ============================================================
-    # 步骤 3: ML 预测 TVT
-    # ============================================================
+    # ================================================================
+    # 评估
+    # ================================================================
     print(f"\n{'='*70}")
-    print("步骤 3: ML bias 预测 TVT（验证集）")
+    print("评估（验证集）- 自回归 vs 作弊 vs 基线")
     print(f"{'='*70}")
 
-    ml_rmses = []
-    const_rmses = []
-    oracle_rmses = []
+    results = {'oracle': [], 'const': [], 'cheat': [], 'ar': []}
 
     for idx in val_idx:
         w = wells[idx]
         ps = w['ps']
-        n_lateral = w['n'] - ps
-
+        n = w['n']
+        n_lateral = n - ps
         if n_lateral < 100:
             continue
 
@@ -315,62 +221,75 @@ def main():
         true_tvt = w['tvt'][ps:]
         l_dz = w['dz'][ps:]
 
-        # 构建全井特征
-        X_all, _ = build_features(w['dx'], w['dy'], w['dz'], w['dmd'])
-        X_all_s = scaler.transform(X_all)
-        X_all_bias = np.column_stack([np.ones(len(X_all_s)), X_all_s])
-        bias_pred = X_all_bias @ weights
+        # ---- 作弊版 (真实 bias 序列) ----
+        X_cheat, _ = build_features_v5(
+            w['dx'], w['dy'], w['dz'], w['dmd'],
+            bias_seq=w['target']
+        )
+        bias_cheat = model.predict(X_cheat)
+        pred_cheat = predict_tvt_cumsum(start_tvt, l_dz, bias_cheat[ps:])
+        results['cheat'].append(np.sqrt(np.mean((pred_cheat - true_tvt)**2)))
 
-        # ML 预测
-        pred_ml = predict_tvt_cumsum(start_tvt, l_dz, bias_pred[ps:])
-        ml_rmses.append(np.sqrt(np.mean((pred_ml - true_tvt)**2)))
+        # ---- 自回归版 ----
+        # 构建 bias 序列：前 ps 步用真实值，后面逐步预测填入
+        bias_ar = np.zeros(n)
+        bias_ar[:ps] = w['target'][:ps]  # 已知段真实 bias
 
-        # 常数 bias 对比
+        for i in range(ps, n):
+            # 只取最近 ctx_len 步来构建特征
+            ctx_len = 100  # 足够覆盖 lag50
+            ctx_start = max(0, i - ctx_len + 1)
+            n_ctx = i - ctx_start + 1
+
+            Xi, _ = build_features_v5(
+                w['dx'][ctx_start:i+1],
+                w['dy'][ctx_start:i+1],
+                w['dz'][ctx_start:i+1],
+                w['dmd'][ctx_start:i+1],
+                bias_seq=bias_ar[ctx_start:i+1]  # 已预测的 bias 序列
+            )
+            bias_i = model.predict(Xi[-1:])[0]
+            bias_ar[i] = bias_i
+
+        pred_ar = predict_tvt_cumsum(start_tvt, l_dz, bias_ar[ps:])
+        results['ar'].append(np.sqrt(np.mean((pred_ar - true_tvt)**2)))
+
+        # ---- 常数 ----
         const_bias = w['target'][ps - 200:ps].mean()
-        pred_const = predict_tvt_cumsum(start_tvt, l_dz, np.full(n_lateral, const_bias))
-        const_rmses.append(np.sqrt(np.mean((pred_const - true_tvt)**2)))
+        pred_c = predict_tvt_cumsum(start_tvt, l_dz, np.full(n_lateral, const_bias))
+        results['const'].append(np.sqrt(np.mean((pred_c - true_tvt)**2)))
 
-        # Oracle 对比
+        # ---- Oracle ----
         best = float('inf')
         for b in np.arange(-0.1, 0.1, 0.001):
-            pred = predict_tvt_cumsum(start_tvt, l_dz, np.full(n_lateral, b))
-            rmse = np.sqrt(np.mean((pred - true_tvt)**2))
+            pred_o = predict_tvt_cumsum(start_tvt, l_dz, np.full(n_lateral, b))
+            rmse = np.sqrt(np.mean((pred_o - true_tvt)**2))
             if rmse < best:
                 best = rmse
-        oracle_rmses.append(best)
+        results['oracle'].append(best)
 
-    ml_rmses = np.array(ml_rmses)
-    const_rmses = np.array(const_rmses)
-    oracle_rmses = np.array(oracle_rmses)
-
+    # 打印结果
     print(f"\n{'='*70}")
-    print(f"结果对比（验证集 {len(ml_rmses)} 口井）")
+    print(f"结果对比（验证集 {len(results['oracle'])} 口井）")
     print(f"{'='*70}")
-    print(f"{'方法':>25} | {'均值':>8} | {'中位数':>8} | {'最小':>8} | {'最大':>8}")
-    print(f"{'-'*25}-+-{'-'*8}-+-{'-'*8}-+-{'-'*8}-+-{'-'*8}")
-    print(f"{'Oracle (搜索bias)':>25} | {oracle_rmses.mean():>8.2f} | {np.median(oracle_rmses):>8.2f} | {oracle_rmses.min():>8.2f} | {oracle_rmses.max():>8.2f}")
-    print(f"{'常数bias (已知段)':>25} | {const_rmses.mean():>8.2f} | {np.median(const_rmses):>8.2f} | {const_rmses.min():>8.2f} | {const_rmses.max():>8.2f}")
-    print(f"{'ML bias (dx,dy...)':>25} | {ml_rmses.mean():>8.2f} | {np.median(ml_rmses):>8.2f} | {ml_rmses.min():>8.2f} | {ml_rmses.max():>8.2f}")
+    print(f"{'方法':>25} | {'均值':>8} | {'中位数':>8}")
+    print(f"{'-'*25}-+-{'-'*8}-+-{'-'*8}")
+    labels = [
+        ('Oracle (搜索标量)', 'oracle'),
+        ('常数bias (已知段)', 'const'),
+        ('ML 作弊 (真实bias序列)', 'cheat'),
+        ('ML 自回归 (逐步预测)', 'ar'),
+    ]
+    ref = {}
+    for name, key in labels:
+        arr = np.array(results[key])
+        print(f"{name:>25} | {arr.mean():>8.2f} | {np.median(arr):>8.2f}")
+        ref[key] = arr.mean()
 
-    print(f"\n改进:")
-    print(f"  ML vs 常数: {(1 - ml_rmses.mean() / const_rmses.mean()) * 100:.1f}%")
-    print(f"  Oracle vs 常数: {(1 - oracle_rmses.mean() / const_rmses.mean()) * 100:.1f}%")
-
-    # ============================================================
-    # 与 hengck23 对比
-    # ============================================================
-    print(f"\n{'='*70}")
-    print(f"与讨论区 hengck23 报告对比")
-    print(f"{'='*70}")
-    print(f"hengck23:")
-    print(f"  - Oracle (cumsum -dz - offset): ~7.64 RMSE")
-    print(f"  - 已知段 offset: ~37-39 RMSE")
-    print(f"  - fold-safe selector: ~14.8 RMSE")
-    print(f"")
-    print(f"本实验:")
-    print(f"  - Oracle (搜索标量 bias): {oracle_rmses.mean():.2f} RMSE")
-    print(f"  - 常数 bias (已知段): {const_rmses.mean():.2f} RMSE")
-    print(f"  - ML bias (43特征): {ml_rmses.mean():.2f} RMSE")
+    print(f"\n改进幅度:")
+    print(f"  自回归 vs 常数:          {(1 - ref['ar'] / ref['const']) * 100:.1f}%")
+    print(f"  作弊版 vs Oracle:         {(1 - ref['cheat'] / ref['oracle']) * 100:.1f}%")
+    print(f"  自回归 vs Oracle 剩余差距:  {ref['ar'] - ref['oracle']:.2f} ft")
 
 
 if __name__ == '__main__':
