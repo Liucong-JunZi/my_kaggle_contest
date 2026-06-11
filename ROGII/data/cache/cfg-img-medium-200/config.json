@@ -1,0 +1,36 @@
+{
+  "config_id": "cfg-img-medium-200",
+  "channels": [
+    "t_gr",
+    "h_gr",
+    "history"
+  ],
+  "C": 3,
+  "T": 192,
+  "H": 576,
+  "T_H": 96,
+  "T_F": 96,
+  "H_H": 48,
+  "H_F": 528,
+  "compression": 24,
+  "sdf_scale": 40,
+  "gr_filter_window": 50,
+  "n_train": 200,
+  "n_val": 50,
+  "train_shape": [
+    200,
+    3,
+    192,
+    576
+  ],
+  "val_shape": [
+    50,
+    3,
+    192,
+    576
+  ],
+  "disk_mb": 40.3,
+  "generation_time_sec": 3.3,
+  "random_seed": 42,
+  "has_t_tvt": true
+}

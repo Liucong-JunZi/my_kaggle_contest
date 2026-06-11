@@ -1,0 +1,1 @@
+{"config_id": "feat-lgb-base", "model": "LightGBM", "best_val_rmse": 211.72975786115825, "training_time_sec": 3.0}

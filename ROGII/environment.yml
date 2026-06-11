@@ -1,0 +1,20 @@
+name: rogii-cv
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - numpy
+  - pandas
+  - scipy
+  - scikit-learn
+  - pytorch::pytorch
+  - h5py
+  - matplotlib
+  - tqdm
+  - pip:
+      - transformers
+      - lightgbm
+      - opencv-python-headless

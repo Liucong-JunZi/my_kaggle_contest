@@ -1,0 +1,20 @@
+{
+  "config_id": "cfg-img-medium",
+  "channels": [
+    "t_gr",
+    "h_gr",
+    "history"
+  ],
+  "C": 3,
+  "T": 192,
+  "H": 576,
+  "compression": 24,
+  "sdf_scale": 40,
+  "T_H": 96,
+  "T_F": 96,
+  "H_H": 48,
+  "H_F": 528,
+  "n_train": 50,
+  "n_val": 50,
+  "type": "image"
+}

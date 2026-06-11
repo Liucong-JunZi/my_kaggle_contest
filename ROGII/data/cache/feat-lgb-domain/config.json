@@ -1,0 +1,22 @@
+{
+  "config_id": "feat-lgb-domain",
+  "feature_dim": 12,
+  "n_train": 255425,
+  "n_val": 236122,
+  "feature_names": [
+    "MD",
+    "X",
+    "Y",
+    "Z",
+    "dz",
+    "GR_smooth",
+    "GR_std",
+    "tortuosity",
+    "cos_azimuth",
+    "sin_azimuth",
+    "TVT_history",
+    "dTVT_history"
+  ],
+  "type": "tabular",
+  "generation_time_sec": 4.5
+}

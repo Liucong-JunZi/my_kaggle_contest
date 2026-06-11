@@ -1,0 +1,17 @@
+{
+  "config_id": "feat-lgb-base",
+  "feature_dim": 7,
+  "n_train": 255425,
+  "n_val": 236122,
+  "feature_names": [
+    "MD",
+    "X",
+    "Y",
+    "Z",
+    "dz",
+    "GR_smooth",
+    "GR_std"
+  ],
+  "type": "tabular",
+  "generation_time_sec": 4.6
+}

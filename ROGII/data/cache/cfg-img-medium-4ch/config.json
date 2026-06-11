@@ -1,0 +1,35 @@
+{
+  "config_id": "cfg-img-medium-4ch",
+  "channels": [
+    "t_gr",
+    "h_gr",
+    "gr_diff",
+    "history"
+  ],
+  "C": 4,
+  "T": 192,
+  "H": 576,
+  "T_H": 96,
+  "T_F": 96,
+  "H_H": 48,
+  "H_F": 528,
+  "compression": 24,
+  "sdf_scale": 40,
+  "gr_filter_window": 50,
+  "n_train": 50,
+  "n_val": 50,
+  "train_shape": [
+    50,
+    4,
+    192,
+    576
+  ],
+  "val_shape": [
+    50,
+    4,
+    192,
+    576
+  ],
+  "disk_mb": 33.1,
+  "generation_time_sec": 1.7
+}

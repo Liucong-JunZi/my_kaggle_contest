@@ -1,0 +1,12 @@
+MD
+X
+Y
+Z
+dz
+GR_smooth
+GR_std
+tortuosity
+cos_azimuth
+sin_azimuth
+TVT_history
+dTVT_history

@@ -1,0 +1,62 @@
+[
+  {
+    "config": "cfg-img-medium",
+    "model": "SegFormer-mit-b0",
+    "channels": 3,
+    "best_val_rmse": 15.89,
+    "best_epoch": 12,
+    "epochs": 15,
+    "training_time_sec": 57.2,
+    "round": 2,
+    "notes": "Baseline. Same 50 train / 50 val wells. T=192 H=576 comp=24."
+  },
+  {
+    "config": "cfg-img-medium-mitb1",
+    "model": "SegFormer-mit-b1",
+    "channels": 3,
+    "best_val_rmse": 15.93,
+    "best_epoch": 8,
+    "epochs": 15,
+    "training_time_sec": 114.5,
+    "round": 3,
+    "notes": "Same data as cfg-img-medium. Larger backbone TIED (+0.04). Capacity saturated at 50-well scale."
+  },
+  {
+    "config": "cfg-img-medium-4ch",
+    "model": "SegFormer-mit-b0",
+    "channels": 4,
+    "best_val_rmse": 25.57,
+    "best_epoch": 15,
+    "epochs": 15,
+    "training_time_sec": 85.4,
+    "round": 3,
+    "notes": "Fair gr_diff test: same geometry as cfg-img-medium + gr_diff channel. HURT by +9.68 ft."
+  },
+  {
+    "config": "cfg-img-medium-200",
+    "model": "SegFormer-mit-b0",
+    "channels": 3,
+    "best_val_rmse": 21.77,
+    "best_epoch": 12,
+    "epochs": 20,
+    "training_time_sec": 375.4,
+    "round": 2,
+    "notes": "200 train wells but DIFFERENT val set — not directly comparable."
+  },
+  {
+    "config": "feat-lgb-base",
+    "model": "LightGBM",
+    "best_val_rmse": 211.73,
+    "training_time_sec": 3.0,
+    "round": 1,
+    "notes": "Tabular baseline. Cross-well absolute RMSE."
+  },
+  {
+    "config": "feat-lgb-domain",
+    "model": "LightGBM",
+    "best_val_rmse": 121.32,
+    "training_time_sec": 3.1,
+    "round": 1,
+    "notes": "+ tortuosity + azimuth + TVT_history."
+  }
+]
