@@ -3,13 +3,13 @@
     "config": "cfg-img-medium",
     "model": "SegFormer-mit-b0",
     "channels": 3,
-    "best_val_rmse_raw": 15.89,
-    "best_val_rmse_anchored": 14.28,
-    "best_epoch": 12,
-    "epochs": 15,
-    "training_time_sec": 57.2,
-    "round": 2,
-    "notes": "Baseline + R4-A partial anchor (α=0.75). Same 50 train / 50 val wells. T=192 H=576 comp=24."
+    "best_val_rmse_raw": 15.84,
+    "best_val_rmse_anchored": 13.67,
+    "best_epoch": 10,
+    "epochs": 20,
+    "training_time_sec": 77.0,
+    "round": 4,
+    "notes": "⭐ Current best baseline. R4 re-train of cfg-img-medium with anchored-best ckpt selection."
   },
   {
     "config": "cfg-img-medium-mitb1",
@@ -20,7 +20,7 @@
     "epochs": 15,
     "training_time_sec": 114.5,
     "round": 3,
-    "notes": "Same data as cfg-img-medium. Larger backbone TIED (+0.04). Capacity saturated at 50-well scale."
+    "notes": "R3 - Larger backbone tied b0 (capacity saturated at 50-well scale)."
   },
   {
     "config": "cfg-img-medium-4ch",
@@ -31,36 +31,30 @@
     "epochs": 15,
     "training_time_sec": 85.4,
     "round": 3,
-    "notes": "Fair gr_diff test: same geometry + gr_diff channel. HURT by +9.68 ft."
+    "notes": "R3 - Fair gr_diff test, HURT by +9.68 ft (target leak / new-channel init disruption)."
   },
   {
     "config": "cfg-img-medium-100",
     "model": "SegFormer-mit-b0",
     "channels": 3,
-    "best_val_rmse_raw": 25.49,
-    "best_epoch": 4,
+    "best_val_rmse_raw": 25.35,
+    "best_epoch": 18,
     "epochs": 20,
+    "training_time_sec": 204.0,
     "round": 4,
-    "notes": "R4-B fair scaling 100 train + same 50 val. Plateaus at 25.5 — extra wells hurt vs hand-picked 50."
+    "notes": "R4-B fair scaling 100 train + same 50 val. PLATEAUED at 25 — distribution shift in extra wells."
   },
   {
     "config": "cfg-img-medium-200-fair",
     "model": "SegFormer-mit-b0",
     "channels": 3,
-    "round": 4,
-    "status": "training",
-    "notes": "R4-B fair scaling 200 train + same 50 val. Pending."
-  },
-  {
-    "config": "cfg-img-medium-200",
-    "model": "SegFormer-mit-b0",
-    "channels": 3,
-    "best_val_rmse_raw": 21.77,
-    "best_epoch": 12,
+    "best_val_rmse_raw": 25.29,
+    "best_val_rmse_anchored": 34.17,
+    "best_epoch": 18,
     "epochs": 20,
-    "training_time_sec": 375.4,
-    "round": 2,
-    "notes": "OLD: 200 train wells but DIFFERENT val set — not directly comparable. R4-B replaces this."
+    "training_time_sec": 391.0,
+    "round": 4,
+    "notes": "R4-B fair scaling 200 train. anc > raw means extra wells have known-segment bias — strong distribution-shift evidence."
   },
   {
     "config": "feat-lgb-base",

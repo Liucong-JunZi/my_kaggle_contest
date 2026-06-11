@@ -1,0 +1,24 @@
+Config: cfg-img-medium-100 | device: mps | backbone: nvidia/mit-b0
+Shape: C=3 T=192 H=576 | train=100 val=50
+epoch  1 | loss=0.6512 | val_rmse=32.94 | ✓ NEW BEST
+epoch  2 | loss=0.2543 | val_rmse=26.85 | ✓ NEW BEST
+epoch  3 | loss=0.2166 | val_rmse=26.88 | (26.85 best)
+epoch  4 | loss=0.1980 | val_rmse=25.49 | ✓ NEW BEST
+epoch  5 | loss=0.1966 | val_rmse=25.54 | (25.49 best)
+epoch  6 | loss=0.2057 | val_rmse=25.75 | (25.49 best)
+epoch  7 | loss=0.1879 | val_rmse=25.67 | (25.49 best)
+epoch  8 | loss=0.1874 | val_rmse=26.86 | (25.49 best)
+epoch  9 | loss=0.1862 | val_rmse=27.25 | (25.49 best)
+epoch 10 | loss=0.1920 | val_rmse=26.64 | (25.49 best)
+epoch 11 | loss=0.1888 | val_rmse=25.64 | (25.49 best)
+epoch 12 | loss=0.1772 | val_rmse=26.54 | (25.49 best)
+epoch 13 | loss=0.1835 | val_rmse=25.53 | (25.49 best)
+epoch 14 | loss=0.1807 | val_rmse=25.58 | (25.49 best)
+epoch 15 | loss=0.1805 | val_rmse=25.40 | ✓ NEW BEST
+epoch 16 | loss=0.1790 | val_rmse=27.07 | (25.40 best)
+epoch 17 | loss=0.1735 | val_rmse=25.43 | (25.40 best)
+epoch 18 | loss=0.1707 | val_rmse=25.35 | ✓ NEW BEST
+epoch 19 | loss=0.1787 | val_rmse=25.42 | (25.35 best)
+epoch 20 | loss=0.1751 | val_rmse=25.49 | (25.35 best)
+
+Best: 25.35 ft @ ep18 | 204s | → data/cache/cfg-img-medium-100/metrics.json

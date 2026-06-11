@@ -51,21 +51,28 @@ ROGII/
 
 | Config | raw RMSE | **anchored RMSE** | 训练 | 备注 |
 |--------|----------|-------------------|------|------|
-| **cfg-img-medium + R4-A** | 15.89 | **14.28** ⭐ | 57s, 50井×15ep mit-b0 | 当前最佳（α=0.75 anchor） |
-| cfg-img-medium (raw) | 15.89 | — | 57s | R2 基线 |
+| **cfg-img-medium (R4 重训)** | 15.84 | **13.67** ⭐ | 77s, 50井×20ep mit-b0 | R4-A 流水线 + anchored-best ckpt |
 | cfg-img-medium-mitb1 | 15.93 | — | 114s | R3 - b1 持平 b0，容量饱和 |
 | cfg-img-medium-4ch (+gr_diff) | 25.57 | — | 85s | R3 - gr_diff 通道反向 |
-| cfg-img-medium-100 (fair) | 25.49 (raw) | — | — | R4-B 100井公平对比，**反而退化** |
-| cfg-img-medium-200-fair | running | — | — | R4-B 进行中 |
-| cfg-img-medium-200 (旧) | 21.77 | — | 375s | R2 旧版，val 不同 |
+| cfg-img-medium-100 (fair) | 25.35 | — | 204s, 100井×20ep | R4-B - 100井反而退化 |
+| cfg-img-medium-200-fair | 25.29 | 34.17 ❌ | 391s | R4-B - 200井 anc>raw，新井已知段偏移 |
 | feat-lgb-domain | 121.32 | — | 3s | LightGBM |
 | feat-lgb-base | 211.73 | — | 3s | LightGBM |
 
-**死路确认**：mit-b1 backbone (R3) / gr_diff 通道 (R3) / subpixel & smoothing 解码 (R4-A)。
-**已锁定增益**：R4-A partial anchor (α=0.75, -1.61 ft, 零训练成本)。
-**待 R4-B 完成判断**：数据扩规模轴 (50→100→200) 是否值得继续。
+**死路确认（R3-R4 完结）**：
+- mit-b1 backbone (R3) — 50 井容量饱和
+- gr_diff 通道 (R3) — 派生信号目标泄漏
+- 数据扩规模 (R2 + R4-B ×2) — 额外井分布与 val 不一致
+- subpixel / smooth 解码 (R4-A) — 量化误差不是瓶颈
 
-**参考**：hengck23 早期预训练 (00004053.pth) 在他 val 上 14.82 mean / 11.68 median。我们 anchored 14.28 已经过他。
+**Round 4 增益**：R4-A partial anchor (α=0.75) + anchored-best ckpt = **15.89 → 13.67 ft (-2.22)** 零训练成本。
+
+**R5 路线**（按 ROI 排序）：
+1. Soft-argmin + Huber TVT loss — 攻击 train/eval 目标失配
+2. MTP head（dip / uncertainty / layer mask） — 提供模型缺失的校准信号
+3. Beam search / DP decode — 利用 H 维空间平滑
+
+**参考**：hengck23 早期预训练 (00004053.pth) 在他 val 上 14.82 mean / 11.68 median。我们 anchored 13.67 已超过其平均。
 
 ## 核心方法
 

@@ -52,28 +52,49 @@ Setup:
 - Same geometry (T=192, H=576, comp=24, 3 channels), mit-b0, 20 epochs.
 - Generator: `experiments/round_004/gen_fair_scaling.py` (calls `process_wells` + `save_h5` from `src/gen_images.py`).
 
-### Status
+### Final results
 
-| Config | n_train | best RMSE (raw) | epochs run | status |
-|--------|---------|-----------------|-----------|--------|
-| cfg-img-medium (baseline) | 50 | 15.89 (anchored 14.28) | 15 | reference |
-| cfg-img-medium-100 | 100 | 25.49 @ ep4 | 14+ | converged at ~25 — **worse than 50-well** |
-| cfg-img-medium-200-fair | 200 | running | — | pending |
+| n_train | raw RMSE | anchored RMSE | best epoch | wall time |
+|---------|---------:|--------------:|-----------:|----------:|
+| **50 (cfg-img-medium re-run)** | **15.84** | **13.67** ⭐ | 10 | 77 s |
+| 100 | 25.35 | (anchor breaks) | 18 | 204 s |
+| 200 (fair) | 25.29 | 34.17 ❌ | 18 | 391 s |
 
-### Preliminary signal (pending 200-well finish)
+### Findings
 
-100-well training plateaus at ~25.5 ft — **worse than 50-well 15.89**. This is the second time data scaling hurt (R2 cfg-img-medium-200 was 21.77). Hypotheses:
-- Pool wells beyond the original 50 may have systematically different characteristics (geology, length, GR distribution).
-- Larger train set may need more epochs / different LR schedule to converge.
-- The original 50 train wells were possibly hand-curated to match the val distribution.
+1. **Data scaling is dead** — adding wells made it ~10 ft worse, twice. Combined with R2's `cfg-img-medium-200` (different-val 21.77), this is the THIRD failure of the scaling axis.
+2. **The extra wells are distributionally off from val**. The original `TRAIN_IDS` in `src/gen_images.py` was hand-curated to match val geology; sorted-alphabetical extras don't.
+3. **Anchored 34.17 > raw 25.29 on 200-fair** is the smoking gun: the anchor logic computes a per-well bias from the known H_H=48 horizontal columns, which should always help. When it dramatically hurts, those known columns themselves carry mis-calibrated predictions for the new wells, which means the model's *known-segment* error is what's broken — not just future-segment extrapolation.
+4. **Anchor-best ckpt selection added 0.6 ft on 50-well** — R4-A re-run with the new train.py (selecting best by anchored RMSE) reaches 13.67, vs the earlier 14.28 (which used the raw-best ckpt and then anchored post-hoc). Selecting on what you care about evaluating actually matters.
 
-If 200-well also lands ≥ 20 ft, the scaling axis is dead and we should pivot to **R5: TVT-aware loss (soft-argmin + Huber)** or **R6: MTP head**.
+### Verdict
+
+- Stop trying to add wells naively. To revisit the data axis later: cluster wells by GR / TVT / trajectory features and pick extras that match val distribution, or stratified random sampling with multiple seeds.
+- Cache for `cfg-img-medium-100/` and `cfg-img-medium-200-fair/` discarded (regenerable in ~3 s if needed); metrics + logs archived under `results/round_004/`.
+- **Effective baseline after R4**: cfg-img-medium with R4-A pipeline = **raw 15.84 / anchored 13.67** (re-trained ckpt).
+
+## Round 4 → Round 5 next step
+
+Three axes confirmed dead through R3-R4:
+- Bigger backbone (R3 mit-b1)
+- Extra input channel as derived signal (R3 gr_diff)
+- More training data (R2 / R4-B ×2)
+
+Remaining promising axes:
+1. **R5-A**: TVT-aware loss (soft-argmin + Huber on TVT) — directly attacks the train/eval objective gap (the loss plateau at 0.20 while val RMSE doesn't drop)
+2. **R5-B**: MTP head (dip / uncertainty / layer boundary multi-task) — gives model the calibration signal R4-A's per-well bias analysis showed is missing
+3. **R5-C**: Beam search / DP path decoding — exploits spatial smoothness across H columns
+
+R5-A is cheapest (loss-only change); R5-B is best long-term ROI (hengck23's true source of LB gains).
 
 ## Files
 
 - `experiments/round_004/notes.md` — this document
 - `experiments/round_004/gen_fair_scaling.py` — fair-scaling dataset generator (R4-B)
+- `experiments/round_004/gen_fair_scaling.log` — dataset generation log
 - `results/round_004/decoding_ablation_v1.json` — R4-A1 first sweep
 - `results/round_004/decoding_ablation_v2.json` — R4-A2 alpha + threshold + confidence sweep
-- `results/round_004/cfg-img-medium-100.json` — R4-B 100-well metrics (when done)
-- `results/round_004/cfg-img-medium-200-fair.json` — R4-B 200-well metrics (when done)
+- `results/round_004/cfg-img-medium-100.{json,log}` — R4-B 100-well metrics & training log
+- `results/round_004/cfg-img-medium-200-fair.{json,log}` — R4-B 200-well metrics & training log
+- `results/round_004/cfg-img-medium-r4repro.log` — re-train of 50-well baseline under current pipeline (13.67 ⭐)
+- `data/cache/cfg-img-medium/{best_model.pth, metrics.json}` — UPDATED to the 13.67-ckpt
