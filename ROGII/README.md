@@ -12,70 +12,76 @@ ROGII/
 ├── src/                            # 核心代码
 │   ├── gen_images.py               # 2D 匹配网格图像生成 (HDF5)
 │   ├── gen_features.py             # 表格特征工程 (NPZ)
-│   ├── train.py                    # SegFormer 训练 + 评估
-│   └── eval.py                     # 预训练模型评估
+│   ├── train.py                    # SegFormer 训练 + raw/anchored 双指标评估
+│   ├── decode.py                   # SDF→TVT 解码 + 已知段 partial anchor (R4-A)
+│   └── eval.py                     # 预训练 checkpoint 评估
 │
 ├── data/
 │   ├── cache/                      # 预处理后的数据集 (HDF5/NPZ)
-│   │   ├── cfg-img-medium/         # 当前最佳: 50井, RMSE 15.89
-│   │   ├── cfg-img-medium-200/     # 200井版本: RMSE 21.77
-│   │   ├── cfg-img-grdiff/         # 4ch (含 gr_diff) 版本
-│   │   ├── feat-lgb-base/          # 基础表格特征
-│   │   └── feat-lgb-domain/        # 加领域特征版本
+│   │   ├── cfg-img-medium/         # 当前最佳: 50井, raw 15.89 / anc 14.28
+│   │   ├── cfg-img-medium-100/     # R4-B fair: 100井
+│   │   ├── cfg-img-medium-200/     # R2 旧版: 200井+不同val (21.77)
+│   │   ├── cfg-img-medium-200-fair/# R4-B fair: 200井+同val
+│   │   ├── cfg-img-medium-4ch/     # R3: +gr_diff 通道 (25.57, 反向)
+│   │   ├── feat-lgb-base/          # 表格特征基线
+│   │   └── feat-lgb-domain/        # +领域特征
 │
 ├── docs/
 │   ├── competition-description.md  # 比赛说明
 │   ├── competition-insights.md     # 论坛精华整理
-│   └── hengck23-reference/         # hengck23 的参考代码 + 预训练权重
+│   └── hengck23-reference/         # hengck23 参考代码 + 预训练权重
 │
-├── experiments/                    # 实验记录
-│   ├── round_001/                  # 冷启动宽搜索
-│   ├── round_002/                  # 修 bug + 特征训练
-│   ├── round_000-pf-discrete.md    # 早期 Particle Filter / 离散 Viterbi
-│   ├── scripts/                    # 早期方案脚本 (PF / 离散 offset)
-│   ├── index.json / leaderboard.json / search_state.json
+├── experiments/                    # 每轮设计文档 + 一次性脚本
+│   ├── round_000-pf-discrete.md    # 早期 Particle Filter / Viterbi
+│   ├── round_003/notes.md          # backbone/channel ablations
+│   ├── round_004/notes.md          # decoding + fair data scaling
+│   ├── round_004/gen_fair_scaling.py
+│   └── scripts/                    # 早期 PF/offset 实验脚本
 │
-├── results/                        # 各轮实验最终指标
-│   ├── summary.json                # 汇总
-│   ├── round_002/
-│   └── round_003/
+├── results/                        # 各轮最终指标 (JSON + 日志)
+│   ├── summary.json                # 全部 config 总览
+│   ├── round_002/  round_003/  round_004/
 │
-├── notebooks/                      # Jupyter 笔记本 (待添加)
-│
-├── rogii-wellbore-geology-prediction/   # 原始竞赛数据 (不可改)
-│
+├── notebooks/                      # Jupyter (待用)
+├── rogii-wellbore-geology-prediction/   # 原始竞赛数据 (只读)
 └── .claude/skills/                 # 多 Agent 协作 skills
-    ├── cv-orchestrator/            # 调度者 skill + WORK_PROBLEMS.md
-    ├── image-searcher/             # 图像构造搜索 agent
-    ├── feature-searcher/           # 特征工程搜索 agent
-    ├── train-validator/            # 训练验证 agent
-    └── experiment-tracker/         # 实验记录 agent
 ```
 
 ## 当前最佳结果
 
-| Config | Val RMSE (ft) | 训练时间 | 模型 | 备注 |
-|--------|---------------|----------|------|------|
-| **cfg-img-medium** | **15.89** | 57s, 50井×15ep | SegFormer mit-b0 | ⭐ 基线 (R2) |
-| cfg-img-medium-mitb1 | 15.93 | 114s | SegFormer mit-b1 | R3 - 持平，b0 容量已饱和 |
-| cfg-img-medium-4ch | 25.57 | 85s | SegFormer mit-b0 (+gr_diff) | R3 - gr_diff 通道有害 |
-| cfg-img-medium-200 | 21.77 | 375s, 200井×20ep | SegFormer mit-b0 | val 集不同 → 待 R4 公平对比 |
-| feat-lgb-domain | 121.32 | 3s | LightGBM | 跨井绝对 RMSE |
-| feat-lgb-base | 211.73 | 3s | LightGBM | 跨井绝对 RMSE |
-| (常量基线) | 638 | — | mean TVT | |
+| Config | raw RMSE | **anchored RMSE** | 训练 | 备注 |
+|--------|----------|-------------------|------|------|
+| **cfg-img-medium (R4 重训)** | 15.84 | **13.67** ⭐ | 77s, 50井×20ep mit-b0 | R4-A 流水线 + anchored-best ckpt |
+| cfg-img-medium-mitb1 | 15.93 | — | 114s | R3 - b1 持平 b0，容量饱和 |
+| cfg-img-medium-4ch (+gr_diff) | 25.57 | — | 85s | R3 - gr_diff 通道反向 |
+| cfg-img-medium-100 (fair) | 25.35 | — | 204s, 100井×20ep | R4-B - 100井反而退化 |
+| cfg-img-medium-200-fair | 25.29 | 34.17 ❌ | 391s | R4-B - 200井 anc>raw，新井已知段偏移 |
+| feat-lgb-domain | 121.32 | — | 3s | LightGBM |
+| feat-lgb-base | 211.73 | — | 3s | LightGBM |
 
-**Round 3 死路**：mit-b1 backbone / gr_diff 第 4 通道。**Round 4 候选**：公平 200 井对比、SDF scale 细搜索、MTP head、beam search 后处理。
+**死路确认（R3-R4 完结）**：
+- mit-b1 backbone (R3) — 50 井容量饱和
+- gr_diff 通道 (R3) — 派生信号目标泄漏
+- 数据扩规模 (R2 + R4-B ×2) — 额外井分布与 val 不一致
+- subpixel / smooth 解码 (R4-A) — 量化误差不是瓶颈
 
-**参考**：hengck23 早期预训练 SegFormer (00004053.pth) 在他自己的 val 井上: 14.82 mean / 11.68 median RMSE。我们的 15.89 已接近其水平。
+**Round 4 增益**：R4-A partial anchor (α=0.75) + anchored-best ckpt = **15.89 → 13.67 ft (-2.22)** 零训练成本。
+
+**R5 路线**（按 ROI 排序）：
+1. Soft-argmin + Huber TVT loss — 攻击 train/eval 目标失配
+2. MTP head（dip / uncertainty / layer mask） — 提供模型缺失的校准信号
+3. Beam search / DP decode — 利用 H 维空间平滑
+
+**参考**：hengck23 早期预训练 (00004053.pth) 在他 val 上 14.82 mean / 11.68 median。我们 anchored 13.67 已超过其平均。
 
 ## 核心方法
 
 **SDF (Signed Distance Function) + SegFormer**
 - 输入: (C=3, T=192, H=576) 2D 图像 — typewell GR / horizontal GR / history path
-- 输出: SDF 热力图 = (h_tvt - t_tvt) / 40
-- 预测: argmin(|sdf|) per column → typewell TVT 查表
+- 输出: SDF 热力图 = (h_tvt - t_tvt) / 40, clip [-3, 3]
+- 解码: argmin(|sdf|) per column → t_tvt[idx] → partial anchor (R4-A)
 
-参考 hengck23 在 [discussion #699853](https://www.kaggle.com/competitions/rogii-wellbore-geology-prediction/discussion/699853) 提出的 CNN+MTP 架构。
+参考 hengck23 [discussion #699853](https://www.kaggle.com/competitions/rogii-wellbore-geology-prediction/discussion/699853)。
 
 ## 使用方法
 
@@ -83,21 +89,21 @@ ROGII/
 # 1. 环境
 pip install torch transformers h5py lightgbm scipy opencv-python-headless
 
-# 2. 生成数据
-python src/gen_images.py --config cfg-img-medium  # 生成 HDF5
-python src/gen_features.py --config feat-lgb-base  # 生成 NPZ
+# 2. 生成数据（gen_images.py 内部用 CONFIGS 字典；fair scaling 看 experiments/round_004/）
+python src/gen_images.py
+python src/gen_features.py
 
-# 3. 训练 (统一入口, 支持 --backbone / --epochs)
+# 3. 训练（统一入口，自动报告 raw + anchored RMSE）
 python src/train.py --dataset data/cache/cfg-img-medium
 python src/train.py --dataset data/cache/cfg-img-medium --backbone nvidia/mit-b1 --epochs 20
 
-# 4. 评估预训练
+# 4. 评估 hengck23 预训练
 python src/eval.py --ckpt docs/hengck23-reference/00004053.pth
 ```
 
 ## Multi-Agent 实验流程
 
-本项目使用 [claude-agent-sdk](https://github.com/anthropics/claude-agent-sdk-python) 实现多 Agent 协作：
+使用 [claude-agent-sdk](https://github.com/anthropics/claude-agent-sdk-python)：
 
 ```
 cv-orchestrator (我)
@@ -107,4 +113,4 @@ cv-orchestrator (我)
   └─ experiment-tracker → 记录实验
 ```
 
-详见 `.claude/skills/cv-orchestrator/SKILL.md`。
+详见 `.claude/skills/cv-orchestrator/SKILL.md` + `WORK_PROBLEMS.md`。

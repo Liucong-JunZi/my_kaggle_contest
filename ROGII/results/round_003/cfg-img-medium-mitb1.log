@@ -1,0 +1,20 @@
+Using device: mps
+Training cfg-img-medium-mitb1 | mit-b1 | C=3 T=192 H=576 | 15ep
+Train: 50 | Val: 50
+epoch  1 | loss=1.2196 | val_rmse=50.07 | ✓ NEW BEST
+epoch  2 | loss=0.3535 | val_rmse=20.34 | ✓ NEW BEST
+epoch  3 | loss=0.2355 | val_rmse=29.28 | (20.34 best)
+epoch  4 | loss=0.2467 | val_rmse=24.81 | (20.34 best)
+epoch  5 | loss=0.2560 | val_rmse=17.26 | ✓ NEW BEST
+epoch  6 | loss=0.2280 | val_rmse=19.88 | (17.26 best)
+epoch  7 | loss=0.2067 | val_rmse=17.76 | (17.26 best)
+epoch  8 | loss=0.2378 | val_rmse=15.93 | ✓ NEW BEST
+epoch  9 | loss=0.2173 | val_rmse=16.12 | (15.93 best)
+epoch 10 | loss=0.2036 | val_rmse=16.44 | (15.93 best)
+epoch 11 | loss=0.2070 | val_rmse=15.95 | (15.93 best)
+epoch 12 | loss=0.2100 | val_rmse=15.97 | (15.93 best)
+epoch 13 | loss=0.2083 | val_rmse=16.67 | (15.93 best)
+epoch 14 | loss=0.2090 | val_rmse=16.22 | (15.93 best)
+epoch 15 | loss=0.2165 | val_rmse=16.08 | (15.93 best)
+
+Best: 15.93 ft @ ep8 | 114s

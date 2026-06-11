@@ -1,0 +1,28 @@
+# OS / editor
+.DS_Store
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Local virtualenvs
+.venv/
+venv/
+env/
+
+# Local caches
+.mypy_cache/
+.ruff_cache/
+
+# Stale agent transcripts (claude-agent-sdk)
+*.session.json
+
+# Don't track unfinished experiment artifacts until they have metrics.json
+# (override per-config by `git add -f <path>` when committing a finished run)

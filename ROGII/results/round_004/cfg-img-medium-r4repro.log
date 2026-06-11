@@ -1,0 +1,24 @@
+Config: cfg-img-medium | device: mps | backbone: nvidia/mit-b0
+Shape: C=3 T=192 H=576 | train=50 val=50
+epoch  1 | loss=1.5015 | raw=32.18 | anc=15.00 | ✓ NEW BEST
+epoch  2 | loss=0.3798 | raw=28.91 | anc=28.77 | (15.00 best)
+epoch  3 | loss=0.2377 | raw=18.31 | anc=18.15 | (15.00 best)
+epoch  4 | loss=0.2247 | raw=25.90 | anc=15.47 | (15.00 best)
+epoch  5 | loss=0.2284 | raw=29.61 | anc=14.43 | ✓ NEW BEST
+epoch  6 | loss=0.2120 | raw=19.62 | anc=13.89 | ✓ NEW BEST
+epoch  7 | loss=0.2694 | raw=22.19 | anc=14.01 | (13.89 best)
+epoch  8 | loss=0.2319 | raw=18.14 | anc=13.88 | ✓ NEW BEST
+epoch  9 | loss=0.2224 | raw=16.24 | anc=15.19 | (13.88 best)
+epoch 10 | loss=0.1996 | raw=18.06 | anc=13.67 | ✓ NEW BEST
+epoch 11 | loss=0.2218 | raw=15.99 | anc=13.68 | (13.67 best)
+epoch 12 | loss=0.2145 | raw=20.88 | anc=14.28 | (13.67 best)
+epoch 13 | loss=0.2200 | raw=17.69 | anc=14.20 | (13.67 best)
+epoch 14 | loss=0.2119 | raw=19.11 | anc=13.68 | (13.67 best)
+epoch 15 | loss=0.2033 | raw=16.26 | anc=14.01 | (13.67 best)
+epoch 16 | loss=0.2024 | raw=15.86 | anc=14.21 | (13.67 best)
+epoch 17 | loss=0.1987 | raw=15.93 | anc=14.14 | (13.67 best)
+epoch 18 | loss=0.2087 | raw=16.24 | anc=14.31 | (13.67 best)
+epoch 19 | loss=0.2023 | raw=15.84 | anc=14.12 | (13.67 best)
+epoch 20 | loss=0.2073 | raw=15.94 | anc=13.84 | (13.67 best)
+
+Best: raw=18.06 anc=13.67 ft @ ep10 | 77s | → data/cache/cfg-img-medium/metrics.json

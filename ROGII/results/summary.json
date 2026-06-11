@@ -3,50 +3,63 @@
     "config": "cfg-img-medium",
     "model": "SegFormer-mit-b0",
     "channels": 3,
-    "best_val_rmse": 15.89,
-    "best_epoch": 12,
-    "epochs": 15,
-    "training_time_sec": 57.2,
-    "round": 2,
-    "notes": "Baseline. Same 50 train / 50 val wells. T=192 H=576 comp=24."
+    "best_val_rmse_raw": 15.84,
+    "best_val_rmse_anchored": 13.67,
+    "best_epoch": 10,
+    "epochs": 20,
+    "training_time_sec": 77.0,
+    "round": 4,
+    "notes": "⭐ Current best baseline. R4 re-train of cfg-img-medium with anchored-best ckpt selection."
   },
   {
     "config": "cfg-img-medium-mitb1",
     "model": "SegFormer-mit-b1",
     "channels": 3,
-    "best_val_rmse": 15.93,
+    "best_val_rmse_raw": 15.93,
     "best_epoch": 8,
     "epochs": 15,
     "training_time_sec": 114.5,
     "round": 3,
-    "notes": "Same data as cfg-img-medium. Larger backbone TIED (+0.04). Capacity saturated at 50-well scale."
+    "notes": "R3 - Larger backbone tied b0 (capacity saturated at 50-well scale)."
   },
   {
     "config": "cfg-img-medium-4ch",
     "model": "SegFormer-mit-b0",
     "channels": 4,
-    "best_val_rmse": 25.57,
+    "best_val_rmse_raw": 25.57,
     "best_epoch": 15,
     "epochs": 15,
     "training_time_sec": 85.4,
     "round": 3,
-    "notes": "Fair gr_diff test: same geometry as cfg-img-medium + gr_diff channel. HURT by +9.68 ft."
+    "notes": "R3 - Fair gr_diff test, HURT by +9.68 ft (target leak / new-channel init disruption)."
   },
   {
-    "config": "cfg-img-medium-200",
+    "config": "cfg-img-medium-100",
     "model": "SegFormer-mit-b0",
     "channels": 3,
-    "best_val_rmse": 21.77,
-    "best_epoch": 12,
+    "best_val_rmse_raw": 25.35,
+    "best_epoch": 18,
     "epochs": 20,
-    "training_time_sec": 375.4,
-    "round": 2,
-    "notes": "200 train wells but DIFFERENT val set — not directly comparable."
+    "training_time_sec": 204.0,
+    "round": 4,
+    "notes": "R4-B fair scaling 100 train + same 50 val. PLATEAUED at 25 — distribution shift in extra wells."
+  },
+  {
+    "config": "cfg-img-medium-200-fair",
+    "model": "SegFormer-mit-b0",
+    "channels": 3,
+    "best_val_rmse_raw": 25.29,
+    "best_val_rmse_anchored": 34.17,
+    "best_epoch": 18,
+    "epochs": 20,
+    "training_time_sec": 391.0,
+    "round": 4,
+    "notes": "R4-B fair scaling 200 train. anc > raw means extra wells have known-segment bias — strong distribution-shift evidence."
   },
   {
     "config": "feat-lgb-base",
     "model": "LightGBM",
-    "best_val_rmse": 211.73,
+    "best_val_rmse_raw": 211.73,
     "training_time_sec": 3.0,
     "round": 1,
     "notes": "Tabular baseline. Cross-well absolute RMSE."
@@ -54,7 +67,7 @@
   {
     "config": "feat-lgb-domain",
     "model": "LightGBM",
-    "best_val_rmse": 121.32,
+    "best_val_rmse_raw": 121.32,
     "training_time_sec": 3.1,
     "round": 1,
     "notes": "+ tortuosity + azimuth + TVT_history."
