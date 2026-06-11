@@ -1,0 +1,63 @@
+Pool: 773 total, 100 reserved, 673 extra
+train_100 IDs (first 5): ['01869cd4', '03a935ae', '0dc5e64d', '0dd99dc5', '14a53cb3'] ... (last 5): ['14ad5efb', '14fee784', '153552f5', '1550491d', '155887bb']
+train_200 IDs (first 5): ['01869cd4', '03a935ae', '0dc5e64d', '0dd99dc5', '14a53cb3'] ... (last 5): ['37d36812', '38991fd4', '389ae58f', '3932faa6', '39b51819']
+
+======================================================================
+Config: cfg-img-medium-100  (train=100 val=50)
+======================================================================
+  [train] 10/100 wells processed
+  [train] 20/100 wells processed
+  [train] 30/100 wells processed
+  [train] 40/100 wells processed
+  [train] 50/100 wells processed
+  [train] 60/100 wells processed
+  [train] 70/100 wells processed
+  [train] 80/100 wells processed
+  [train] 90/100 wells processed
+  [train] 100/100 wells processed
+  [val] 10/50 wells processed
+  [val] 20/50 wells processed
+  [val] 30/50 wells processed
+  [val] 40/50 wells processed
+  [val] 50/50 wells processed
+  -> cfg-img-medium-100 done | train=100 val=50 | 23.8 MB | 2.0s
+
+======================================================================
+Config: cfg-img-medium-200-fair  (train=200 val=50)
+======================================================================
+  [train] 10/200 wells processed
+  [train] 20/200 wells processed
+  [train] 30/200 wells processed
+  [train] 40/200 wells processed
+  [train] 50/200 wells processed
+  [train] 60/200 wells processed
+  [train] 70/200 wells processed
+  [train] 80/200 wells processed
+  [train] 90/200 wells processed
+  [train] 100/200 wells processed
+  [train] 110/200 wells processed
+  [train] 120/200 wells processed
+  [train] 130/200 wells processed
+  [train] 140/200 wells processed
+  [train] 150/200 wells processed
+  [train] 160/200 wells processed
+  [train] 170/200 wells processed
+  [train] 180/200 wells processed
+  [train] 190/200 wells processed
+  [train] 200/200 wells processed
+  [val] 10/50 wells processed
+  [val] 20/50 wells processed
+  [val] 30/50 wells processed
+  [val] 40/50 wells processed
+  [val] 50/50 wells processed
+  -> cfg-img-medium-200-fair done | train=200 val=50 | 39.8 MB | 3.1s
+
+[verify] cfg-img-medium-100
+  train: X=(100, 3, 192, 576) t_tvt=(100, 192) degen=0/100
+  val: X=(50, 3, 192, 576) t_tvt=(50, 192) degen=0/50
+
+[verify] cfg-img-medium-200-fair
+  train: X=(200, 3, 192, 576) t_tvt=(200, 192) degen=0/200
+  val: X=(50, 3, 192, 576) t_tvt=(50, 192) degen=0/50
+
+All done.

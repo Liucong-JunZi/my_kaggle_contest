@@ -28,6 +28,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
+# R4-A: standard post-processing (subpixel argmin + partial known-segment anchor)
+import sys as _sys; _sys.path.insert(0, str(Path(__file__).parent))
+from decode import decode_sdf_to_tvt, anchor_known_segment, masked_rmse
+
 warnings.filterwarnings("ignore")
 
 
@@ -136,8 +140,10 @@ def train(args):
     model = GeoSteerNet(in_channels=C, backbone_name=args.backbone).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
-    train_losses, val_rmses = [], []
+    train_losses, val_rmses, val_rmses_anc = [], [], []
     best_rmse, best_epoch = float("inf"), 0
+    best_anc_rmse = float("inf")
+    H_H = args.h_known  # known horizontal columns (default 48 for cfg-img-medium-*)
     t_start = time.time()
 
     for epoch in range(1, args.epochs + 1):
@@ -153,30 +159,41 @@ def train(args):
             ep_losses.append(loss.item())
         train_losses.append(float(np.mean(ep_losses)))
 
+        # ── Eval: raw argmin + subpixel + anchored (R4-A pipeline) ──
         model.eval()
-        all_rmse = []
+        all_pred = []; all_mask = []; all_ytvt = []; all_ttvt = []
         with torch.no_grad():
             for X, mask_h, _, y_tvt, t_tvt in val_loader:
-                X, mask_h = X.to(device), mask_h.to(device)
-                y_tvt, t_tvt = y_tvt.to(device), t_tvt.to(device)
+                X = X.to(device)
                 history = X[:, C - 1 : C]
-                sdf_abs = model(X, history).abs().squeeze(1)
-                best_t = sdf_abs.argmin(dim=1)  # (B, H)
-                tvt_pred = torch.gather(t_tvt, 1, best_t)
-                rmse = torch.sqrt(
-                    ((tvt_pred - y_tvt) ** 2 * mask_h).sum(dim=1)
-                    / mask_h.sum(dim=1).clamp(min=1)
-                )
-                all_rmse.extend(rmse.cpu().numpy().tolist())
-        val_rmse = float(np.mean(all_rmse))
-        val_rmses.append(val_rmse)
+                sdf_abs = model(X, history).abs().squeeze(1).cpu().numpy()
+                all_pred.append(sdf_abs)
+                all_mask.append(mask_h.numpy())
+                all_ytvt.append(y_tvt.numpy())
+                all_ttvt.append(t_tvt.numpy())
+        sdf_abs = np.concatenate(all_pred, axis=0)
+        mask_np = np.concatenate(all_mask, axis=0)
+        y_tvt_np = np.concatenate(all_ytvt, axis=0)
+        t_tvt_np = np.concatenate(all_ttvt, axis=0)
 
-        status = "✓ NEW BEST" if val_rmse < best_rmse else f"({best_rmse:.2f} best)"
-        if val_rmse < best_rmse:
+        tvt_raw = decode_sdf_to_tvt(sdf_abs, t_tvt_np, subpixel=False)
+        tvt_sub = decode_sdf_to_tvt(sdf_abs, t_tvt_np, subpixel=True)
+        tvt_anc = anchor_known_segment(tvt_sub, y_tvt_np[:, :H_H], mask_np[:, :H_H], alpha=0.75)
+
+        val_rmse = float(masked_rmse(tvt_raw, y_tvt_np, mask_np).mean())
+        val_rmse_anc = float(masked_rmse(tvt_anc, y_tvt_np, mask_np).mean())
+        val_rmses.append(val_rmse)
+        val_rmses_anc.append(val_rmse_anc)
+
+        # Save best by *anchored* RMSE (R4-A standard)
+        status = "✓ NEW BEST" if val_rmse_anc < best_anc_rmse else f"({best_anc_rmse:.2f} best)"
+        if val_rmse_anc < best_anc_rmse:
+            best_anc_rmse = val_rmse_anc
             best_rmse, best_epoch = val_rmse, epoch
             torch.save(model.state_dict(), out_dir / "best_model.pth")
         print(
-            f"epoch {epoch:2d} | loss={train_losses[-1]:.4f} | val_rmse={val_rmse:.2f} | {status}",
+            f"epoch {epoch:2d} | loss={train_losses[-1]:.4f} | "
+            f"raw={val_rmse:.2f} | anc={val_rmse_anc:.2f} | {status}",
             flush=True,
         )
 
@@ -187,17 +204,20 @@ def train(args):
         "model": f"SegFormer-{args.backbone.split('/')[-1]}",
         "channels": C, "T": T, "H": H,
         "epochs": args.epochs, "best_epoch": best_epoch,
-        "best_val_rmse": round(best_rmse, 4),
-        "final_val_rmse": round(val_rmses[-1], 4),
+        "best_val_rmse_raw": round(best_rmse, 4),
+        "best_val_rmse_anchored": round(best_anc_rmse, 4),
+        "final_val_rmse_raw": round(val_rmses[-1], 4),
+        "final_val_rmse_anchored": round(val_rmses_anc[-1], 4),
         "train_loss": [round(l, 4) for l in train_losses],
-        "val_rmse_per_epoch": [round(r, 4) for r in val_rmses],
+        "val_rmse_raw_per_epoch": [round(r, 4) for r in val_rmses],
+        "val_rmse_anc_per_epoch": [round(r, 4) for r in val_rmses_anc],
         "training_time_sec": round(t_total, 1),
         "batch_size": args.batch_size, "device": str(device),
         "tvt_method": "t_tvt_grid_lookup",
     }
     with open(out_dir / "metrics.json", "w") as f:
         json.dump(metrics, f, indent=2)
-    print(f"\nBest: {best_rmse:.2f} ft @ ep{best_epoch} | {t_total:.0f}s | → {out_dir}/metrics.json")
+    print(f"\nBest: raw={best_rmse:.2f} anc={best_anc_rmse:.2f} ft @ ep{best_epoch} | {t_total:.0f}s | → {out_dir}/metrics.json")
 
 
 if __name__ == "__main__":
@@ -209,4 +229,6 @@ if __name__ == "__main__":
     ap.add_argument("--epochs", type=int, default=15)
     ap.add_argument("--batch-size", type=int, default=2)
     ap.add_argument("--lr", type=float, default=1e-3)
+    ap.add_argument("--h-known", type=int, default=48,
+                    help="Number of known columns at start of horizontal (for R4-A anchor)")
     train(ap.parse_args())

@@ -1,0 +1,23 @@
+{
+  "ckpt": "/Users/liucong/code/kaggle/ROGII/data/cache/cfg-img-medium/best_model.pth",
+  "n_val": 50,
+  "best_smooth_window": 75,
+  "results": {
+    "1_baseline": {
+      "mean": 15.890999794006348,
+      "median": 11.022768020629883
+    },
+    "2_subpixel": {
+      "mean": 15.884458114522275,
+      "median": 11.008938468587305
+    },
+    "3_smoothed": {
+      "mean": 15.879010095238506,
+      "median": 10.994469795817995
+    },
+    "4_anchored": {
+      "mean": 14.398150959807383,
+      "median": 10.326696972210225
+    }
+  }
+}
