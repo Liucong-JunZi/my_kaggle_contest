@@ -18,11 +18,7 @@ ROGII/
 │
 ├── data/
 │   ├── cache/                      # 预处理后的数据集 (HDF5/NPZ)
-│   │   ├── cfg-img-medium/         # 当前最佳: 50井, raw 15.89 / anc 14.28
-│   │   ├── cfg-img-medium-100/     # R4-B fair: 100井
-│   │   ├── cfg-img-medium-200/     # R2 旧版: 200井+不同val (21.77)
-│   │   ├── cfg-img-medium-200-fair/# R4-B fair: 200井+同val
-│   │   ├── cfg-img-medium-4ch/     # R3: +gr_diff 通道 (25.57, 反向)
+│   │   ├── cfg-img-medium/         # ⭐ 当前最佳: 50井, raw 15.84 / anc 13.67
 │   │   ├── feat-lgb-base/          # 表格特征基线
 │   │   └── feat-lgb-domain/        # +领域特征
 │
@@ -32,11 +28,10 @@ ROGII/
 │   └── hengck23-reference/         # hengck23 参考代码 + 预训练权重
 │
 ├── experiments/                    # 每轮设计文档 + 一次性脚本
-│   ├── round_000-pf-discrete.md    # 早期 Particle Filter / Viterbi
+│   ├── round_000-pf-discrete/      # 早期 PF/Viterbi 探索（notes + scripts）
 │   ├── round_003/notes.md          # backbone/channel ablations
-│   ├── round_004/notes.md          # decoding + fair data scaling
-│   ├── round_004/gen_fair_scaling.py
-│   └── scripts/                    # 早期 PF/offset 实验脚本
+│   ├── round_004/                  # decoding + fair data scaling
+│   └── round_005/                  # soft-argmin TVT loss (DEAD), MTP planning
 │
 ├── results/                        # 各轮最终指标 (JSON + 日志)
 │   ├── summary.json                # 全部 config 总览
@@ -59,18 +54,20 @@ ROGII/
 | feat-lgb-domain | 121.32 | — | 3s | LightGBM |
 | feat-lgb-base | 211.73 | — | 3s | LightGBM |
 
-**死路确认（R3-R4 完结）**：
+**死路确认（R3-R5）**：
 - mit-b1 backbone (R3) — 50 井容量饱和
 - gr_diff 通道 (R3) — 派生信号目标泄漏
 - 数据扩规模 (R2 + R4-B ×2) — 额外井分布与 val 不一致
 - subpixel / smooth 解码 (R4-A) — 量化误差不是瓶颈
+- **Soft-argmin + Huber TVT loss (R5-A)** — 与 SDF MSE 梯度冲突
 
 **Round 4 增益**：R4-A partial anchor (α=0.75) + anchored-best ckpt = **15.89 → 13.67 ft (-2.22)** 零训练成本。
 
-**R5 路线**（按 ROI 排序）：
-1. Soft-argmin + Huber TVT loss — 攻击 train/eval 目标失配
-2. MTP head（dip / uncertainty / layer mask） — 提供模型缺失的校准信号
-3. Beam search / DP decode — 利用 H 维空间平滑
+**Round 5 候选**：
+1. ~~Soft-argmin + Huber TVT loss~~ — R5-A 已死路
+2. **MTP head（dip / uncertainty / layer mask）** — aux loss 走独立 head，与 SDF gradient 解耦 ⭐
+3. Beam search / DP decode — 低优 (R4-A 已证空间平滑增益小)
+4. 数据聚类采样再扩 — R4-B 改进（先按 GR/TVT 分布筛井）
 
 **参考**：hengck23 早期预训练 (00004053.pth) 在他 val 上 14.82 mean / 11.68 median。我们 anchored 13.67 已超过其平均。
 

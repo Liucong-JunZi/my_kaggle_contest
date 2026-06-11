@@ -71,5 +71,31 @@
     "training_time_sec": 3.1,
     "round": 1,
     "notes": "+ tortuosity + azimuth + TVT_history."
+  },
+  {
+    "config": "cfg-img-medium-r5a-pilot",
+    "model": "SegFormer-mit-b0",
+    "channels": 3,
+    "loss": "MSE(sdf) + 0.05*Huber(soft_argmin_tvt, y_tvt), 5ep beta warmup, tau=0.1",
+    "best_val_rmse_raw": 33.17,
+    "best_val_rmse_anchored": 14.63,
+    "best_epoch": 8,
+    "epochs_run": 14,
+    "round": 5,
+    "status": "FAILED (killed at ep14)",
+    "notes": "R5-A pilot. TVT Huber via soft-argmin disrupts SDF gradient: sdf_loss stuck at 0.6-1.7 (baseline 0.2), anc oscillates 14-45. Method dead end -- gradient conflict on shared backbone."
+  },
+  {
+    "config": "cfg-img-medium-r5a-tau030-beta005",
+    "model": "SegFormer-mit-b0",
+    "channels": 3,
+    "loss": "MSE(sdf) + 0.05*Huber(soft_argmin_tvt, y_tvt), 5ep beta warmup, tau=0.3",
+    "best_val_rmse_raw": 30.94,
+    "best_val_rmse_anchored": 15.23,
+    "best_epoch": 6,
+    "epochs_run": 6,
+    "round": 5,
+    "status": "FAILED (killed at ep6)",
+    "notes": "R5-A second pilot, smoother tau. Same pathology: sdf_loss stuck at 0.5-0.7. Confirms R5-A is a dead end."
   }
 ]
