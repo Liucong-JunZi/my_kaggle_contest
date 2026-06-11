@@ -1,0 +1,17 @@
+R5-A: cfg-img-medium-r5a-pilot | dev=mps | bb=nvidia/mit-b0
+      tau=0.1 beta=0.05 alpha=1.0 huber_delta=10.0
+Shape: C=3 T=192 H=576 | train=50 val=50
+ep  1 | β=0.0000 L=1.2264 (sdf=1.226 tvt=146.94) | raw=38.87 anc=16.54 | ✓ NEW BEST
+ep  2 | β=0.0100 L=2.8592 (sdf=1.010 tvt=184.92) | raw=43.00 anc=16.04 | ✓ NEW BEST
+ep  3 | β=0.0200 L=3.6480 (sdf=1.305 tvt=117.13) | raw=33.58 anc=33.27 | (16.04 best)
+ep  4 | β=0.0300 L=3.3808 (sdf=0.646 tvt=91.16) | raw=30.71 anc=21.59 | (16.04 best)
+ep  5 | β=0.0400 L=3.9528 (sdf=0.657 tvt=82.39) | raw=27.13 anc=27.80 | (16.04 best)
+ep  6 | β=0.0500 L=6.4640 (sdf=0.978 tvt=109.71) | raw=31.26 anc=27.69 | (16.04 best)
+ep  7 | β=0.0500 L=5.9328 (sdf=0.902 tvt=100.62) | raw=28.97 anc=30.80 | (16.04 best)
+ep  8 | β=0.0500 L=5.0691 (sdf=0.761 tvt=86.16) | raw=33.17 anc=14.63 | ✓ NEW BEST
+ep  9 | β=0.0500 L=5.9269 (sdf=0.945 tvt=99.63) | raw=35.91 anc=17.75 | (14.63 best)
+ep 10 | β=0.0500 L=7.2956 (sdf=1.716 tvt=111.59) | raw=34.91 anc=26.07 | (14.63 best)
+ep 11 | β=0.0500 L=6.4162 (sdf=0.887 tvt=110.59) | raw=35.62 anc=16.89 | (14.63 best)
+ep 12 | β=0.0500 L=8.2725 (sdf=1.397 tvt=137.51) | raw=38.74 anc=45.44 | (14.63 best)
+ep 13 | β=0.0500 L=8.3024 (sdf=2.416 tvt=117.73) | raw=34.78 anc=39.18 | (14.63 best)
+ep 14 | β=0.0500 L=6.8992 (sdf=1.812 tvt=101.75) | raw=37.92 anc=24.99 | (14.63 best)

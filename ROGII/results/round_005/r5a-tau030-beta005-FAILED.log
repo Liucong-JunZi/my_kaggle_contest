@@ -1,0 +1,11 @@
+R5-A: cfg-img-medium-r5a-tau030-beta005 | dev=mps | bb=nvidia/mit-b0
+      tau=0.3 beta=0.05 alpha=1.0 huber_delta=10.0
+Shape: C=3 T=192 H=576 | train=50 val=50
+ep  1 | β=0.0000 L=1.0728 (sdf=1.073 tvt=116.99) | raw=28.15 anc=41.03 | ✓ NEW BEST
+ep  2 | β=0.0100 L=1.4762 (sdf=0.544 tvt=93.20) | raw=27.91 anc=18.20 | ✓ NEW BEST
+ep  3 | β=0.0200 L=2.2872 (sdf=0.503 tvt=89.20) | raw=46.62 anc=26.46 | (18.20 best)
+ep  4 | β=0.0300 L=3.4222 (sdf=0.583 tvt=94.63) | raw=25.19 anc=19.20 | (18.20 best)
+ep  5 | β=0.0400 L=4.5900 (sdf=0.714 tvt=96.91) | raw=30.94 anc=17.85 | ✓ NEW BEST
+ep  6 | β=0.0500 L=4.6797 (sdf=0.553 tvt=82.54) | raw=32.85 anc=15.23 | ✓ NEW BEST
+ep  7 | β=0.0500 L=5.0613 (sdf=0.677 tvt=87.68) | raw=34.44 anc=23.05 | (15.23 best)
+ep  8 | β=0.0500 L=4.8611 (sdf=0.662 tvt=83.98) | raw=32.29 anc=16.17 | (15.23 best)
