@@ -1,0 +1,22 @@
+     id  authorName  postDate                    votes  content                                                                                                                                                                                                                                                                                                                                                                                             
+-------  ----------  --------------------------  -----  --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  
+3468593              2026-06-09 11:16:44.393000     -1  <p>The geology background makes a lot of sense here. Reading stratigraphy trains you to extract signal from noisy, layered patterns, which is essentially what ARC grids demand. The shift from descriptive to structural thinking is also how most experienced competitors approach it. You got there faster than most. Would be great to see a write-up of how you frame the tasks visually.</p>  
+3468142              2026-06-08 14:21:07.557000      0  <p>Some wells have bad overlap, How does a decide in that case? </p>                                                                                                                                                                                                                                                                                                                                
+3467896              2026-06-07 21:32:13.893000      0  <p><a href="https://www.kaggle.com/aditigeo" target="_blank">@aditigeo</a> </p>
+<p>Hello ! Welcome to kaggle ! </p>
+<p>Can you please share your point of view about this competition and data ? As per my research till today the real life senerio is way different then what competition is presenting .</p>                                                                                     
+3467824              2026-06-07 15:08:50.780000      1  <p>We're glad to have you here Aditi.<br>
+We hope to read some approach (Geologist point-of-view code) from you till the end of the ROGII - Wellbore Geology Prediction.</p>
+<p>Good luck,</p>
+<p>Marília.</p>                                                                                                                                                                                      
+3467897              2026-06-07 21:33:19.713000      1  <p><a href="https://www.kaggle.com/mpwolke" target="_blank">@mpwolke</a> </p>
+<p>Hello ! how's it going ?</p>
+<p>Can you please share your inseights over this competition , specifically the data ?</p>                                                                                                                                                                                            
+3467919              2026-06-08 00:33:06.503000      1  <p>Hi Ayush,</p>
+<p>I've already share one Kaggle Notebook one month ago. When this competition started, at its very 1st  day (as usual: )</p>
+<p>Thank you for asking Khaire.</p>                                                                                                                                                                                                                  
+3467922              2026-06-08 01:00:15.470000      1  <p><a href="https://www.kaggle.com/mpwolke" target="_blank">@mpwolke</a> </p>
+<p>This competition and mr . Market have one common trait .</p>
+<p>Both are unpredictable .</p>
+<p>In my opinion,  this competition results might look very very different,  it will for sure test ones design knowledge. </p>                                                                                        
+3467683              2026-06-07 03:59:24.607000      4  <p>I have learnt a different way of looking at the problems. Initially I looked at it from a descriptive point of view and tried to solve them. Now I look at it from a more structural and deconstruct the bigger problem into smaller achievable parts. </p>                                                                                                                                      

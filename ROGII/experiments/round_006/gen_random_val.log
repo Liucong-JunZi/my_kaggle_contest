@@ -1,0 +1,20 @@
+Pool: 773 total | seed=20260612 | train=50 val=50
+train sample: ['000d7d20', '00e12e8b', '0955cd6c'] ...
+val   sample: ['08fecf00', '10b89021', '19fb4f7b'] ...
+
+======================================================================
+Config: cfg-img-randval
+======================================================================
+  [train] 10/50 wells processed
+  [train] 20/50 wells processed
+  [train] 30/50 wells processed
+  [train] 40/50 wells processed
+  [train] 50/50 wells processed
+  [val] 10/50 wells processed
+  [val] 20/50 wells processed
+  [val] 30/50 wells processed
+  [val] 40/50 wells processed
+  [val] 50/50 wells processed
+  -> cfg-img-randval done | train=50 val=50 | 16.3 MB | proc=0.5s total=1.3s
+  [verify] train: X=(50, 3, 192, 576) t_tvt=(50, 192) degen=0/50
+  [verify] val: X=(50, 3, 192, 576) t_tvt=(50, 192) degen=0/50

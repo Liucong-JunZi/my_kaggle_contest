@@ -26,3 +26,12 @@ env/
 
 # Don't track unfinished experiment artifacts until they have metrics.json
 # (override per-config by `git add -f <path>` when committing a finished run)
+
+# Round-NNN artifacts (parquet/CSV/HDF5/pth) — only track per-round notes/scripts
+results/round_*/
+catboost_info/
+data/cache/
+*.parquet
+*.h5
+*.hdf5
+*.pth

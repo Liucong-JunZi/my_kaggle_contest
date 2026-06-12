@@ -1,0 +1,86 @@
+Pool: 773 total, 50 val, 723 train
+
+======================================================================
+Config: cfg-img-full  (train=723 val=50)
+======================================================================
+  [train] 10/723 wells processed
+  [train] 20/723 wells processed
+  [train] 30/723 wells processed
+  [train] 40/723 wells processed
+  [train] 50/723 wells processed
+  [train] 60/723 wells processed
+  [train] 70/723 wells processed
+  [train] 80/723 wells processed
+  [train] 90/723 wells processed
+  [train] 100/723 wells processed
+  [train] 110/723 wells processed
+  [train] 120/723 wells processed
+  [train] 130/723 wells processed
+  [train] 140/723 wells processed
+  [train] 150/723 wells processed
+  [train] 160/723 wells processed
+  [train] 170/723 wells processed
+  [train] 180/723 wells processed
+  [train] 190/723 wells processed
+  [train] 200/723 wells processed
+  [train] 210/723 wells processed
+  [train] 220/723 wells processed
+  [train] 230/723 wells processed
+  [train] 240/723 wells processed
+  [train] 250/723 wells processed
+  [train] 260/723 wells processed
+  [train] 270/723 wells processed
+  [train] 280/723 wells processed
+  [train] 290/723 wells processed
+  [train] 300/723 wells processed
+  [train] 310/723 wells processed
+  [train] 320/723 wells processed
+  [train] 330/723 wells processed
+  [train] 340/723 wells processed
+  [train] 350/723 wells processed
+  [train] 360/723 wells processed
+  [train] 370/723 wells processed
+  [train] 380/723 wells processed
+  [train] 390/723 wells processed
+  [train] 400/723 wells processed
+  [train] 410/723 wells processed
+  [train] 420/723 wells processed
+  [train] 430/723 wells processed
+  [train] 440/723 wells processed
+  [train] 450/723 wells processed
+  [train] 460/723 wells processed
+  [train] 470/723 wells processed
+  [train] 480/723 wells processed
+  [train] 490/723 wells processed
+  [train] 500/723 wells processed
+  [train] 510/723 wells processed
+  [train] 520/723 wells processed
+  [train] 530/723 wells processed
+  [train] 540/723 wells processed
+  [train] 550/723 wells processed
+  [train] 560/723 wells processed
+  [train] 570/723 wells processed
+  [train] 580/723 wells processed
+  [train] 590/723 wells processed
+  [train] 600/723 wells processed
+  [train] 610/723 wells processed
+  [train] 620/723 wells processed
+  [train] 630/723 wells processed
+  [train] 640/723 wells processed
+  [train] 650/723 wells processed
+  [train] 660/723 wells processed
+  [train] 670/723 wells processed
+  [train] 680/723 wells processed
+  [train] 690/723 wells processed
+  [train] 700/723 wells processed
+  [train] 710/723 wells processed
+  [train] 720/723 wells processed
+  [train] 723/723 wells processed
+  [val] 10/50 wells processed
+  [val] 20/50 wells processed
+  [val] 30/50 wells processed
+  [val] 40/50 wells processed
+  [val] 50/50 wells processed
+  -> cfg-img-full done | train=723 val=50 | 131.3 MB | proc=4.1s save=5.8s total=9.8s
+  [verify] train: X=(723, 3, 192, 576) t_tvt=(723, 192) degen=0/723
+  [verify] val: X=(50, 3, 192, 576) t_tvt=(50, 192) degen=0/50
