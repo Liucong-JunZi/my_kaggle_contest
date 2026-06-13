@@ -609,7 +609,7 @@ def main():
     print(f"  features ({len(feat_cols)})")
     t1 = time.time()
     model_lgb = lgb.LGBMRegressor(
-        n_estimators=900, learning_rate=0.03, num_leaves=63,
+        n_estimators=1500, learning_rate=0.02, num_leaves=127,
         min_child_samples=50, reg_alpha=0.1, reg_lambda=0.1,
         colsample_bytree=0.8, subsample=0.85, subsample_freq=5,
         verbose=-1, n_jobs=-1,
@@ -618,9 +618,9 @@ def main():
     print(f"  LGB fit: {time.time()-t1:.0f}s")
 
     t1b = time.time()
-    # Phase 11 CV best_iter mean ~400, max 1352; cap at 600 for full-corpus refit
+    # v7: restore CAT capacity (Phase 11 CV best_iter mean ~400, max 1352)
     model_cat = CatBoostRegressor(
-        iterations=600, learning_rate=0.05, depth=8,
+        iterations=1000, learning_rate=0.05, depth=8,
         l2_leaf_reg=3.0, subsample=0.85, rsm=0.8,
         loss_function="RMSE", eval_metric="RMSE",
         verbose=False, thread_count=-1, random_seed=42,
