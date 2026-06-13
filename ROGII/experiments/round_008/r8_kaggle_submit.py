@@ -473,7 +473,8 @@ def _warmup_numba():
 from scipy.spatial import cKDTree
 
 K_SP_NEIGHBORS = 5
-K_SP_QUERY = 200
+K_SP_QUERY = 200       # need >= max same-well prefix length to break out of self-cluster
+K_SP_CHUNK = 100_000   # chunked query keeps peak RAM ~1.5GB on Kaggle 16GB
 
 
 def build_spatial_pool(train_wells, train_dir):
@@ -502,46 +503,52 @@ def add_spatial_features(df, tree, pool_well_arr, pool_tvt):
 
     For each row, query K_SP_QUERY nearest from the cKDTree, mask self-well
     entries, take K_SP_NEIGHBORS best, compute median/mean/std/count/distance.
+    Chunked to bound peak RAM (Kaggle 16GB).
     Returns DF with appended columns.
     """
     xy = df[["x_abs", "y_abs"]].values
-    # Force plain ndarray — pandas string columns can be pyarrow-backed
-    # ExtensionArrays which break 2D indexing / broadcasting.
     own_well = np.asarray(df["well"].astype(object).to_numpy(), dtype=object)
     pool_well_arr = np.asarray(pool_well_arr, dtype=object)
-    print(f"  spatial: querying tree for {len(df):,} rows ...", flush=True)
-    dist, idx = tree.query(xy, k=K_SP_QUERY, workers=-1)
-    # Mask self-well
-    pool_well_at_idx = pool_well_arr[idx]   # (N, K)
-    is_self = (pool_well_at_idx == own_well[:, None])
-    dist_m = np.where(is_self, np.inf, dist)
-    order = np.argsort(dist_m, axis=1)
-    idx_s = np.take_along_axis(idx, order, axis=1)
-    dist_s = np.take_along_axis(dist_m, order, axis=1)
-    idx_top = idx_s[:, :K_SP_NEIGHBORS]
-    dist_top = dist_s[:, :K_SP_NEIGHBORS]
-    valid = np.isfinite(dist_top)
-    tvt_top = pool_tvt[idx_top]
-    n_valid = valid.sum(axis=1)
-    d_min = dist_top[:, 0].astype(np.float32)
+    n = len(df)
+    print(f"  spatial: querying tree for {n:,} rows in chunks of {K_SP_CHUNK:,} ...", flush=True)
 
-    medians = np.full(len(df), np.nan, dtype=np.float32)
-    means   = np.full(len(df), np.nan, dtype=np.float32)
-    stds    = np.full(len(df), np.nan, dtype=np.float32)
-    for i in range(len(df)):
-        v = valid[i]
-        if v.sum() == 0: continue
-        t = tvt_top[i, v]
-        medians[i] = float(np.median(t))
-        means[i]   = float(np.mean(t))
-        stds[i]    = float(np.std(t)) if v.sum() > 1 else 0.0
+    medians = np.full(n, np.nan, dtype=np.float32)
+    means   = np.full(n, np.nan, dtype=np.float32)
+    stds    = np.full(n, np.nan, dtype=np.float32)
+    n_valid_arr = np.zeros(n, dtype=np.float32)
+    d_min_arr   = np.full(n, np.nan, dtype=np.float32)
+
+    for start in range(0, n, K_SP_CHUNK):
+        end = min(start + K_SP_CHUNK, n)
+        dist, idx = tree.query(xy[start:end], k=K_SP_QUERY, workers=-1)
+        is_self = (pool_well_arr[idx] == own_well[start:end, None])
+        dist_m = np.where(is_self, np.inf, dist)
+        order  = np.argsort(dist_m, axis=1)
+        idx_s  = np.take_along_axis(idx, order, axis=1)
+        dist_s = np.take_along_axis(dist_m, order, axis=1)
+        idx_top  = idx_s[:, :K_SP_NEIGHBORS]
+        dist_top = dist_s[:, :K_SP_NEIGHBORS]
+        valid = np.isfinite(dist_top)
+        tvt_top = pool_tvt[idx_top]
+        n_valid_arr[start:end] = valid.sum(axis=1).astype(np.float32)
+        d_min_arr[start:end]   = dist_top[:, 0].astype(np.float32)
+        for i in range(end - start):
+            v = valid[i]
+            if v.sum() == 0: continue
+            t = tvt_top[i, v]
+            medians[start + i] = float(np.median(t))
+            means[start + i]   = float(np.mean(t))
+            stds[start + i]    = float(np.std(t)) if v.sum() > 1 else 0.0
+        if (start // K_SP_CHUNK) % 5 == 0:
+            print(f"    spatial chunk {end:,}/{n:,}", flush=True)
+        del dist, idx, is_self, dist_m, order, idx_s, dist_s, idx_top, dist_top, valid, tvt_top
 
     df = df.copy()
     df["neighbor_tvt_median"] = medians
     df["neighbor_tvt_mean"]   = means
     df["neighbor_tvt_std"]    = stds
-    df["neighbor_count"]      = n_valid.astype(np.float32)
-    df["neighbor_dist_min"]   = d_min
+    df["neighbor_count"]      = n_valid_arr
+    df["neighbor_dist_min"]   = d_min_arr
     df["neighbor_tvt_offset"] = df["neighbor_tvt_median"] - df["last_known_tvt"]
     df["neighbor_dist_log"]   = np.log1p(df["neighbor_dist_min"].clip(0, 1e6).fillna(1e6))
     return df
@@ -602,7 +609,7 @@ def main():
     print(f"  features ({len(feat_cols)})")
     t1 = time.time()
     model_lgb = lgb.LGBMRegressor(
-        n_estimators=2500, learning_rate=0.02, num_leaves=127,
+        n_estimators=900, learning_rate=0.03, num_leaves=63,
         min_child_samples=50, reg_alpha=0.1, reg_lambda=0.1,
         colsample_bytree=0.8, subsample=0.85, subsample_freq=5,
         verbose=-1, n_jobs=-1,
@@ -611,9 +618,9 @@ def main():
     print(f"  LGB fit: {time.time()-t1:.0f}s")
 
     t1b = time.time()
-    # Phase 11 best_iter ranged ~100-2840 in CV; cap at 2000 for full-corpus fit
+    # Phase 11 CV best_iter mean ~400, max 1352; cap at 600 for full-corpus refit
     model_cat = CatBoostRegressor(
-        iterations=2000, learning_rate=0.05, depth=8,
+        iterations=600, learning_rate=0.05, depth=8,
         l2_leaf_reg=3.0, subsample=0.85, rsm=0.8,
         loss_function="RMSE", eval_metric="RMSE",
         verbose=False, thread_count=-1, random_seed=42,
