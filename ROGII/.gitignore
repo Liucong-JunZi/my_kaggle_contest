@@ -35,3 +35,26 @@ data/cache/
 *.h5
 *.hdf5
 *.pth
+
+# round_010 generated artifacts (kept out of git — too large, regenerable)
+experiments/round_010/results/candidates/
+experiments/round_010/results/joined_features.parquet
+experiments/round_010/results/global_folds.parquet
+experiments/round_010/results/hillclimb_runs/*_oof.parquet
+experiments/round_010/catboost_info/
+
+# Public resource harvest — raw downloads not tracked, only digested notes
+experiments/public_resources/kernels_raw/
+experiments/public_resources/datasets_raw/
+experiments/public_resources/forum_raw/
+
+# Stray Kaggle kernel staging dirs (used for `kaggle kernels push`)
+kaggle_kernels/
+/tmp_kernel*/
+
+# Stray top-level kernel logs from `kaggle kernels output`
+/r*-rogii-*.log
+/v*_out/
+
+# Generated submission CSVs (regenerable)
+experiments/round_009/submission.csv
