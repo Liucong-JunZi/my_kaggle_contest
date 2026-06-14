@@ -32,7 +32,7 @@ PF_GR_SIG_MIN=10.; PF_GR_SIG_MAX=60.; PF_GR_SIG_DEF=30.
 PF_INIT_V_STD=0.02; PF_INIT_SPR=0.5; PF_RESAMP=0.5
 PF_ROUGH_P=0.2; PF_ROUGH_V=0.003; PF_GR_WIN=5; PF_GR_WT=0.3
 ANCC_ALPHA=0.998; ANCC_RN=0.002; ANCC_PN=0.005
-ANCC_IR=0.01; ANCC_IS=0.3; ANCC_RP=0.1; ANCC_RR=0.001
+ANCC_IR=0.01; ANCC_IS=4.5; ANCC_RP=0.1; ANCC_RR=0.001  # IS 0.3 → 4.5 (sp45 patch from kernel)
 
 
 # ── JIT PF kernels (verbatim from kernel) ─────────────────────────────────────
@@ -67,7 +67,9 @@ def _pf_ancc(md_v,z_v,gr_v,gg,vmin,step,gs,ls,ir,N,
     for j in range(N):
         pos[j]=ls+IS*np.random.randn()
         rate[j]=ir+0.01*np.random.randn()
-    pts=np.empty(len(md_v)); std_=np.empty(len(md_v)); pm=md_v[0]-1.
+    pts=np.empty(len(md_v)); std_=np.empty(len(md_v))
+    loglk=np.empty(len(md_v))   # cumulative log-evidence up to row i
+    pm=md_v[0]-1.; cum_ll=0.
     for i in range(len(md_v)):
         dm=md_v[i]-pm; dm=max(dm,1.)
         for j in range(N):
@@ -77,12 +79,14 @@ def _pf_ancc(md_v,z_v,gr_v,gg,vmin,step,gs,ls,ir,N,
             tvt_j=max(tvt_j,vmin-50.); tvt_j=min(tvt_j,vmin+len(gg)*step+50.)
             pos[j]=tvt_j+z_v[i]
         if not np.isnan(gr_v[i]):
-            ws=0.
+            ws=0.; avg_lk=0.
             for j in range(N):
                 eg=_interp1(gg,pos[j]-z_v[i],vmin,step)
                 d=(gr_v[i]-eg)/gs
                 lk=max(np.exp(-0.5*d*d) if d*d<600. else 0.,1e-300)
+                avg_lk+=w[j]*lk      # observation evidence under prior
                 w[j]*=lk; ws+=w[j]
+            cum_ll += np.log(max(avg_lk,1e-300))
             if ws>0.:
                 for j in range(N): w[j]/=ws
             else:
@@ -96,8 +100,8 @@ def _pf_ancc(md_v,z_v,gr_v,gg,vmin,step,gs,ls,ir,N,
         for j in range(N): tv+=w[j]*(pos[j]-z_v[i])
         pts[i]=tv; va=0.
         for j in range(N): va+=w[j]*(pos[j]-z_v[i]-tv)**2
-        std_[i]=va**0.5; pm=md_v[i]
-    return pts,std_
+        std_[i]=va**0.5; loglk[i]=cum_ll; pm=md_v[i]
+    return pts,std_,loglk
 
 
 @njit(cache=True)
@@ -108,7 +112,9 @@ def _pf_z(md_v,z_v,gr_v,gr_sm_v,gg_p,gg_s,vmin,step,
     for j in range(N):
         pos[j]=ip+0.5*np.random.randn()
         vel[j]=iv+0.02*np.random.randn()
-    pts=np.empty(len(md_v)); std_=np.empty(len(md_v)); pm=md_v[0]-1.; pz=z_v[0]-1.
+    pts=np.empty(len(md_v)); std_=np.empty(len(md_v))
+    loglk=np.empty(len(md_v))
+    pm=md_v[0]-1.; pz=z_v[0]-1.; cum_ll=0.
     for i in range(len(md_v)):
         dm=md_v[i]-pm; dm=max(dm,1.)
         dzd=(z_v[i]-pz)/dm; ve=beta*dzd+icpt
@@ -117,7 +123,7 @@ def _pf_z(md_v,z_v,gr_v,gr_sm_v,gg_p,gg_s,vmin,step,
             pos[j]+=vel[j]*dm+PN*np.random.randn()
             pos[j]=max(pos[j],vmin-50.); pos[j]=min(pos[j],vmin+len(gg_p)*step+50.)
         if not np.isnan(gr_v[i]):
-            ws=0.
+            ws=0.; avg_lk=0.
             for j in range(N):
                 ep=_interp1(gg_p,pos[j],vmin,step)
                 dp=(gr_v[i]-ep)/gs
@@ -125,10 +131,12 @@ def _pf_z(md_v,z_v,gr_v,gr_sm_v,gg_p,gg_s,vmin,step,
                 if not np.isnan(gr_sm_v[i]):
                     es=_interp1(gg_s,pos[j],vmin,step)
                     ds=(gr_sm_v[i]-es)/(gs*1.5)
-                    ls=max(np.exp(-0.5*ds*ds) if ds*ds<600. else 0.,1e-300)
-                    lk=(1.-GR_WT)*lp+GR_WT*ls
+                    lsm=max(np.exp(-0.5*ds*ds) if ds*ds<600. else 0.,1e-300)
+                    lk=(1.-GR_WT)*lp+GR_WT*lsm
                 else: lk=lp
-                lk=max(lk,1e-300); w[j]*=lk; ws+=w[j]
+                lk=max(lk,1e-300); avg_lk+=w[j]*lk
+                w[j]*=lk; ws+=w[j]
+            cum_ll += np.log(max(avg_lk,1e-300))
             if ws>0.:
                 for j in range(N): w[j]/=ws
             else:
@@ -151,8 +159,8 @@ def _pf_z(md_v,z_v,gr_v,gr_sm_v,gg_p,gg_s,vmin,step,
         for j in range(N): wm+=w[j]*pos[j]
         pts[i]=wm; va=0.
         for j in range(N): va+=w[j]*(pos[j]-wm)**2
-        std_[i]=va**0.5; pm=md_v[i]; pz=z_v[i]
-    return pts,std_
+        std_[i]=va**0.5; loglk[i]=cum_ll; pm=md_v[i]; pz=z_v[i]
+    return pts,std_,loglk
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -172,23 +180,26 @@ def _gr_sig(hw,tw_tvt,tw_gr):
 def run_pf_ancc(hw,tw_tvt,tw_gr,N=ANCC_N):
     gs=_gr_sig(hw,tw_tvt,tw_gr)
     kn=hw[hw['TVT_input'].notna()]; ev=hw[hw['TVT_input'].isna()]
-    if len(ev)==0: return np.array([]),np.array([])
+    if len(ev)==0: return np.array([]),np.array([]),np.array([])
     ls=float(kn['TVT_input'].iloc[-1]+kn['Z'].iloc[-1])
     tail=kn.tail(30); dt=np.diff(tail['TVT_input'].values)
     dz=np.diff(tail['Z'].values); dm=np.diff(tail['MD'].values); m=dm>0
     ir=float(np.median((dt+dz)[m]/dm[m])) if m.sum()>=3 else 0.
     gg,gmin,gst=_grid(tw_tvt,tw_gr)
-    pts,std=_pf_ancc(ev['MD'].values.astype(np.float64),ev['Z'].values.astype(np.float64),
-                      ev['GR'].values.astype(np.float64),gg,gmin,gst,
+    # Pre-interpolate GR over the FULL well, then slice ev rows (kernel pattern).
+    gr_full = hw['GR'].interpolate(limit_direction='both').fillna(float(np.nanmean(tw_gr)))
+    gr_v = gr_full.loc[ev.index].values.astype(np.float64)
+    pts,std,loglk=_pf_ancc(ev['MD'].values.astype(np.float64),ev['Z'].values.astype(np.float64),
+                      gr_v,gg,gmin,gst,
                       gs,ls,ir,N,ANCC_ALPHA,ANCC_RN,ANCC_PN,ANCC_IS,ANCC_RP,ANCC_RR,PF_RESAMP)
-    return pts.astype(np.float32),std.astype(np.float32)
+    return pts.astype(np.float32),std.astype(np.float32),loglk.astype(np.float32)
 
 
 def run_pf_z(hw,tw_tvt,tw_gr,N=PF_N):
     gs=_gr_sig(hw,tw_tvt,tw_gr)
     tw_s=pd.Series(tw_gr).rolling(PF_GR_WIN,center=True,min_periods=1).mean().values.astype(np.float32)
     kna=hw[hw['TVT_input'].notna()]; ev=hw[hw['TVT_input'].isna()]
-    if len(ev)==0: return np.array([]),np.array([])
+    if len(ev)==0: return np.array([]),np.array([]),np.array([])
     dz_k=np.diff(kna['Z'].values); dvt=np.diff(kna['TVT_input'].values)
     dmd_k=np.diff(kna['MD'].values); m2=dmd_k>0
     if m2.sum()>=10:
@@ -200,21 +211,24 @@ def run_pf_z(hw,tw_tvt,tw_gr,N=PF_N):
     iv=float(np.median(dvt2[m3]/dmd2[m3])) if m3.sum()>=3 else 0.
     gg,gmin,gst=_grid(tw_tvt,tw_gr)
     gs2,_,_=_grid(tw_tvt,tw_s)
-    gr_sm=hw['GR'].rolling(PF_GR_WIN,center=True,min_periods=1).mean()
-    pts,std=_pf_z(ev['MD'].values.astype(np.float64),ev['Z'].values.astype(np.float64),
-                   ev['GR'].values.astype(np.float64),
-                   gr_sm.loc[ev.index].values.astype(np.float64),
+    # Pre-interpolate raw + smoothed GR over the FULL well (kernel pattern).
+    gr_full   = hw['GR'].interpolate(limit_direction='both').fillna(float(np.nanmean(tw_gr)))
+    gr_sm_ful = gr_full.rolling(PF_GR_WIN,center=True,min_periods=1).mean()
+    gr_v   = gr_full.loc[ev.index].values.astype(np.float64)
+    gr_smv = gr_sm_ful.loc[ev.index].values.astype(np.float64)
+    pts,std,loglk=_pf_z(ev['MD'].values.astype(np.float64),ev['Z'].values.astype(np.float64),
+                   gr_v,gr_smv,
                    gg,gs2,gmin,gst,gs,float(kna['TVT_input'].iloc[-1]),iv,
                    beta,icpt,zsig,N,
                    PF_MOM,PF_VN,PF_PN,PF_GR_WT,PF_ROUGH_P,PF_ROUGH_V,PF_RESAMP)
-    return pts.astype(np.float32),std.astype(np.float32)
+    return pts.astype(np.float32),std.astype(np.float32),loglk.astype(np.float32)
 
 
 # ── JIT warmup (tiny inputs, just to compile) ─────────────────────────────────
 def _warmup():
     md=np.linspace(1,50,20,np.float64); z=np.zeros(20,np.float64)
     gr=np.full(20,50.,np.float64); gg=np.linspace(45,55,100,np.float64)
-    _pf_ancc(md,z,gr,gg,45.,0.1,20.,50.,0.,8,0.998,0.002,0.005,0.3,0.1,0.001,0.5)
+    _pf_ancc(md,z,gr,gg,45.,0.1,20.,50.,0.,8,0.998,0.002,0.005,4.5,0.1,0.001,0.5)
     _pf_z(md,z,gr,gr,gg,gg,45.,0.1,20.,50.,0.,-1.,0.,0.1,8,0.993,0.005,0.01,0.3,0.2,0.003,0.5)
 
 
@@ -254,8 +268,8 @@ def main():
 
         np.random.seed(42)  # match kernel seed for reproducibility
         try:
-            ancc_pts, ancc_std = run_pf_ancc(hw, tw_tvt, tw_gr)
-            z_pts,    z_std    = run_pf_z(hw, tw_tvt, tw_gr)
+            ancc_pts, ancc_std, ancc_ll = run_pf_ancc(hw, tw_tvt, tw_gr)
+            z_pts,    z_std,    z_ll    = run_pf_z(hw, tw_tvt, tw_gr)
         except Exception as e:
             print(f"  ! {wid}: {e}")
             n_fail += 1; continue
@@ -269,8 +283,10 @@ def main():
             "row_idx": ev_idx.astype(np.int32),
             "pf_ancc":     ancc_pts,
             "pf_ancc_std": ancc_std,
+            "pf_ancc_ll":  ancc_ll,
             "pf_z":        z_pts,
             "pf_z_std":    z_std,
+            "pf_z_ll":     z_ll,
         })
         records.append(df_pf)
         n_ok += 1
@@ -284,7 +300,9 @@ def main():
     print(f"\nDone in {time.time()-t0:.0f}s | ok={n_ok} fail={n_fail}")
     df = pd.concat(records, ignore_index=True)
     print(f"Rows: {len(df):,}  Wells: {df['well'].nunique()}")
-    out_path = OUT_DIR / "pf_features.parquet"
+    print(f"Per-well log-lik stats: ancc med={df['pf_ancc_ll'].median():.1f}  "
+          f"z med={df['pf_z_ll'].median():.1f}")
+    out_path = OUT_DIR / "pf_features_v9.parquet"   # new file; keep v8 baseline intact
     df.to_parquet(out_path)
     print(f"→ {out_path}")
 
