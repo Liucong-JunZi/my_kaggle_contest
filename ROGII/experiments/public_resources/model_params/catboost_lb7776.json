@@ -1,0 +1,33 @@
+{
+  "_source_kernel": "lightningv08/lb-7-776-rogii-ridge-sp",
+  "ensemble": [
+    {
+      "tag": "cb_a",
+      "iterations": 8000,
+      "depth": 7,
+      "l2_leaf_reg": 2.0,
+      "min_data_in_leaf": 15,
+      "border_count": 254,
+      "loss_function": "RMSE",
+      "task_type": "GPU",
+      "od_type": "Iter",
+      "od_wait": 300,
+      "learning_rate": 0.020,
+      "random_seed": 7
+    },
+    {
+      "tag": "cb_b",
+      "iterations": 8000,
+      "depth": 7,
+      "l2_leaf_reg": 2.0,
+      "min_data_in_leaf": 15,
+      "border_count": 254,
+      "loss_function": "RMSE",
+      "task_type": "GPU",
+      "od_type": "Iter",
+      "od_wait": 300,
+      "learning_rate": 0.030,
+      "random_seed": 123
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "_source_kernel": "thbdh5765/rogii-v10-fresh-artifacts (manifest.json + inference_config.json)",
+  "_description": "Real artifact stack composition from a public LB ~9.5 stack",
+  "models_in_stack": [
+    {"name": "lgb123", "weight": 0.0, "notes": "LightGBM seed=123, multiple folds"},
+    {"name": "lgb42",  "weight": 0.0, "notes": "LightGBM seed=42"},
+    {"name": "lgb7",   "weight": 0.0, "notes": "LightGBM seed=7"},
+    {"name": "cb42",   "weight": 0.0, "notes": "CatBoost seed=42"},
+    {"name": "cb7",    "weight": 0.0423, "notes": "CatBoost seed=7"},
+    {"name": "cb123",  "weight": 0.0935, "notes": "CatBoost seed=123"},
+    {"name": "tabicl_A", "weight": 0.7117, "notes": "TabICL context A — DOMINANT signal"},
+    {"name": "tabicl_B", "weight": 0.0381, "notes": "TabICL context B"}
+  ],
+  "stacker": {
+    "kind": "positive_ridge",
+    "alpha": 1.0,
+    "fit_intercept": false,
+    "init_method": "hill_climbing (precision=0.01) → positive Ridge fit",
+    "rmse": 11.132
+  },
+  "_implication": "TabICL provides ~71% of the stack signal — most distinct from GBDT. LGB seeds 123/42/7 contribute zero given the saved hill-climbed weights, suggesting they were redundant given CB and TabICL."
+}

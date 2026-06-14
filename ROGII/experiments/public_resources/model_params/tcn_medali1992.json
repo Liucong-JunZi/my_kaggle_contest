@@ -1,0 +1,21 @@
+{
+  "_source_kernel": "medali1992/rogii-tcn-train-with-ddp-layernorm-se-atten",
+  "model": "TCN+CrossAttn+GlobalTransformer",
+  "params": {
+    "hidden_size": 128,
+    "num_blocks": 6,
+    "kernel_size": 5,
+    "dilations": [1, 2, 4, 8, 16, 32],
+    "dropout": 0.10,
+    "tw_num_heads": 4,
+    "global_pool_stride": 50,
+    "global_attn_layers": 2,
+    "global_attn_heads": 4,
+    "ffn_expansion": 2,
+    "learning_rate": 2e-3,
+    "epochs": 60,
+    "batch_size": 16,
+    "grad_clip": 1.0,
+    "lr_schedule": {"type": "CosineAnnealingWarmRestarts", "T_0": 10}
+  }
+}

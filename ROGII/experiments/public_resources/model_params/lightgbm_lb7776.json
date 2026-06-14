@@ -1,0 +1,42 @@
+{
+  "_source_kernel": "lightningv08/lb-7-776-rogii-ridge-sp",
+  "_target": "relative target = TVT - last_known_TVT",
+  "ensemble": [
+    {
+      "tag": "lgb_big",
+      "boosting_type": "gbdt",
+      "num_leaves": 255,
+      "min_child_samples": 15,
+      "subsample": 0.8,
+      "subsample_freq": 1,
+      "colsample_bytree": 0.8,
+      "reg_lambda": 3.0,
+      "reg_alpha": 0.05,
+      "objective": "regression",
+      "max_bin": 255,
+      "learning_rate": 0.030,
+      "n_estimators": 5000,
+      "seed": 123,
+      "early_stopping_rounds": 250
+    },
+    {
+      "tag": "lgb_small_deep_a",
+      "boosting_type": "gbdt",
+      "num_leaves": 64,
+      "min_child_samples": 40,
+      "subsample": 0.47437582748953966,
+      "colsample_bytree": 0.39283351290380497,
+      "reg_alpha": 10.788188919840913,
+      "reg_lambda": 95.75401894533888,
+      "min_child_weight": 0.24081152127177283,
+      "learning_rate": 0.00934485794382918,
+      "n_estimators": 10000,
+      "random_state": 0,
+      "early_stopping_rounds": 250
+    },
+    {
+      "tag": "lgb_small_deep_b",
+      "_note": "same as lgb_small_deep_a but random_state=29"
+    }
+  ]
+}
