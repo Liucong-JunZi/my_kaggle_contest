@@ -1,0 +1,31 @@
+[{"stream_name":"stdout","time":4.692675066,"data":"INPUT_DIR = /kaggle/input/competitions/rogii-wellbore-geology-prediction\n"}
+,{"stream_name":"stdout","time":4.69547935,"data":"Test wells: 3\n"}
+,{"stream_name":"stdout","time":4.73000447,"data":"Train wells available: 773\n"}
+,{"stream_name":"stdout","time":4.776550982,"data":"\n"}
+,{"stream_name":"stdout","time":50.278436716,"data":"[1/3] Processing 000d7d20... phys pf128 beam sel=0:pf_scale_5_hold_0.2 → 3836 rows\n"}
+,{"stream_name":"stdout","time":50.278486044,"data":"\n"}
+,{"stream_name":"stdout","time":120.501867036,"data":"[2/3] Processing 00bbac68... phys pf128 beam sel=3:pf_scale_5_hold_0.15 → 6014 rows\n"}
+,{"stream_name":"stdout","time":120.501919248,"data":"\n"}
+,{"stream_name":"stdout","time":170.722930356,"data":"[3/3] Processing 00e12e8b... phys pf128 beam sel=2:pf_scale_12_beam_0.2_hold_0.15 → 4301 rows\n"}
+,{"stream_name":"stdout","time":170.804257655,"data":"\n"}
+,{"stream_name":"stdout","time":170.804293324,"data":"============================================================\n"}
+,{"stream_name":"stdout","time":170.80429989,"data":"Done: 14151 rows in 2.8 min (0.05 h)\n"}
+,{"stream_name":"stdout","time":170.804304928,"data":"Wells: 3 total | 3 physical | 0 PF failures\n"}
+,{"stream_name":"stdout","time":170.804309707,"data":"Output: /kaggle/working/submission.csv\n"}
+,{"stream_name":"stdout","time":170.804503275,"data":"Mean TVT: 11903.630\n"}
+,{"stream_name":"stdout","time":170.810579787,"data":"           id          tvt\n"}
+,{"stream_name":"stdout","time":170.810616245,"data":"000d7d20_1442 11747.378624\n"}
+,{"stream_name":"stdout","time":170.810631023,"data":"000d7d20_1443 11747.388624\n"}
+,{"stream_name":"stdout","time":170.810636725,"data":"000d7d20_1444 11747.398624\n"}
+,{"stream_name":"stdout","time":170.81064195,"data":"000d7d20_1445 11747.408624\n"}
+,{"stream_name":"stdout","time":170.810647488,"data":"000d7d20_1446 11747.418624\n"}
+,{"stream_name":"stdout","time":170.810652694,"data":"000d7d20_1447 11747.428624\n"}
+,{"stream_name":"stdout","time":170.810658515,"data":"000d7d20_1448 11747.428624\n"}
+,{"stream_name":"stdout","time":170.810663685,"data":"000d7d20_1449 11747.438624\n"}
+,{"stream_name":"stderr","time":173.88760807,"data":"/usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":173.887670588,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":174.282540891,"data":"/usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":174.282576073,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":176.021773535,"data":"[NbConvertApp] Converting notebook __script__.ipynb to html\n"}
+,{"stream_name":"stderr","time":177.765988701,"data":"[NbConvertApp] Writing 377338 bytes to __results__.html\n"}
+]
