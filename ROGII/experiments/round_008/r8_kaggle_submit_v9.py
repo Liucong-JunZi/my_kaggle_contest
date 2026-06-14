@@ -415,17 +415,24 @@ def extract_well_features(wid, data_dir):
     try:
         hw = pd.read_csv(f"{data_dir}/{wid}__horizontal_well.csv")
         tw = pd.read_csv(f"{data_dir}/{wid}__typewell.csv")
-    except Exception:
+    except Exception as e:
+        print(f"⚠ 井 {wid} 跳过：CSV 读取失败 ({type(e).__name__}: {e})")
         return None
-    if len(hw) < 50: return None
+    if len(hw) < 50:
+        print(f"⚠ 井 {wid} 跳过：horizontal_well 行数 < 50 (={len(hw)})")
+        return None
     md=hw["MD"].values; x=hw["X"].values; y=hw["Y"].values; z=hw["Z"].values
     tvt_inp = hw["TVT_input"].values
     gr_raw  = hw["GR"].values
 
     mask_lat = np.isnan(tvt_inp)
-    if mask_lat.sum() == 0: return None
+    if mask_lat.sum() == 0:
+        print(f"⚠ 井 {wid} 跳过：无 lateral 行 (TVT_input 全部 non-NaN)")
+        return None
     known = ~mask_lat
-    if known.sum() < 10: return None
+    if known.sum() < 10:
+        print(f"⚠ 井 {wid} 跳过：known 段 < 10 行 (={int(known.sum())})")
+        return None
     last_idx = np.flatnonzero(known)[-1]
     last_tvt = float(tvt_inp[last_idx])
     last_z = float(z[last_idx]); last_md=float(md[last_idx])
@@ -463,17 +470,23 @@ def extract_well_features(wid, data_dir):
     try:
         pf_a, pf_a_std = run_pf_ancc(hw, tw_tvt, tw_gr)
         pf_z_, pf_z_std= run_pf_z(hw,  tw_tvt, tw_gr)
-    except Exception:
+    except Exception as e:
+        print(f"⚠ 井 {wid} 跳过：PF 单 seed 异常 ({type(e).__name__}: {e})")
         return None
-    if len(pf_a) != len(lat_idx): return None
+    if len(pf_a) != len(lat_idx):
+        print(f"⚠ 井 {wid} 跳过：PF 单 seed 长度不匹配 (pf_a={len(pf_a)} vs lat_idx={len(lat_idx)})")
+        return None
 
     # PF ensemble (16 seeds × 4 scales). Failure here is non-fatal — we fall
     # back to single-seed only (rare; would require a numerical blowup).
     try:
         ens = run_pf_ensemble(hw, tw_tvt, tw_gr)
-    except Exception:
+    except Exception as e:
+        print(f"⚠ 井 {wid} PF ensemble 异常 ({type(e).__name__}: {e})")
         ens = None
     if ens is None or len(ens['pf_ens_s12']) != len(lat_idx):
+        print(f"⚠ 井 {wid} PF ensemble 回退到 single-seed")
+        extract_well_features._ens_fallback_count = getattr(extract_well_features, "_ens_fallback_count", 0) + 1
         # graceful fallback: copy single-seed PF into all ensemble slots
         ens = {f'pf_ens_s{int(s)}': pf_a.astype(np.float32) for s in ENS_SCALES}
         ens['pf_ens_mean'] = pf_a.astype(np.float32)
@@ -481,9 +494,13 @@ def extract_well_features(wid, data_dir):
     # Beam
     try:
         paths, _ = run_beam_all(hw, tw)
-    except Exception:
+    except Exception as e:
+        print(f"⚠ 井 {wid} 跳过：beam search 异常 ({type(e).__name__}: {e})")
         return None
-    if paths is None or len(paths) != len(lat_idx): return None
+    if paths is None or len(paths) != len(lat_idx):
+        n_paths = "None" if paths is None else len(paths)
+        print(f"⚠ 井 {wid} 跳过：beam search 长度不匹配 (paths={n_paths} vs lat_idx={len(lat_idx)})")
+        return None
 
     beam_mean = paths.mean(1); beam_std = paths.std(1); beam_med=np.median(paths,1)
     beam_rng  = paths.max(1) - paths.min(1)
@@ -586,6 +603,9 @@ def main():
         train = train.dropna(subset=["target"]).reset_index(drop=True)
         print(f"  train rows: {len(train):,}, wells: {train['well'].nunique()}, fails: {fail}")
         print(f"  train build: {time.time()-t0:.0f}s")
+        ens_fb_train = getattr(extract_well_features, "_ens_fallback_count", 0)
+        print(f"  train PF ensemble fallbacks: {ens_fb_train} wells")
+        extract_well_features._ens_fallback_count = 0  # reset for test phase
         if cache_path:
             print(f"  saving train cache to {cache_path}")
             train.to_parquet(cache_path)
@@ -633,6 +653,8 @@ def main():
         dft.append(df_w)
     test = pd.concat(dft, ignore_index=True)
     print(f"  test rows: {len(test):,} | feat build {time.time()-t2:.0f}s")
+    ens_fb_test = getattr(extract_well_features, "_ens_fallback_count", 0)
+    print(f"  test PF ensemble fallbacks: {ens_fb_test} wells")
 
     pred_lgb = model_lgb.predict(test[feat_cols])
     pred_cat = model_cat.predict(test[feat_cols])
