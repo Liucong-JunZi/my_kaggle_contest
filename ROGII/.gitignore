@@ -58,3 +58,14 @@ kaggle_kernels/
 
 # Generated submission CSVs (regenerable)
 experiments/round_009/submission.csv
+experiments/round_010/submission_v3.csv
+
+# round_010 logs (regenerable)
+experiments/round_010/logs/
+experiments/round_010/results/candidates_logs/
+experiments/round_010/*.log
+
+# round_010 large model artifacts (already in Kaggle dataset, regenerable from export_models.py)
+experiments/round_010/submission_package/hillclimb_v3_kernel/lgb_model.txt
+experiments/round_010/submission_package/hillclimb_v3_kernel/cat_model.cbm
+experiments/round_010/submission_package/hillclimb_v3_dataset/
