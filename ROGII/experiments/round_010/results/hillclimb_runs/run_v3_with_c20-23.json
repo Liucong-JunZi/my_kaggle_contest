@@ -1,0 +1,558 @@
+{
+  "label": "run_v3_with_c20-23",
+  "n_candidates": 21,
+  "best_single_id": "c20_r9_pf128_full",
+  "best_single_pw": 7.952197551727295,
+  "perwell_per_fold_weights": 7.591569825009838,
+  "perwell_avg_weights": 7.5660452441034876,
+  "flat_avg_weights": 10.31244030285901,
+  "improvement_avg": 0.38615230762380737,
+  "n_models_in_avg": 4,
+  "avg_weights": {
+    "c20_r9_pf128_full": 0.778502,
+    "p14_cat": 0.10894,
+    "p14_lgb": 0.092561,
+    "p5_lgb": 0.013075,
+    "c06_xgb_default": 0.006922
+  },
+  "fold_weights": [
+    {
+      "c20_r9_pf128_full": 0.728169,
+      "p14_cat": 0.1197,
+      "p14_lgb": 0.090972
+    },
+    {
+      "c20_r9_pf128_full": 0.73039,
+      "p14_cat": 0.119816,
+      "p14_lgb": 0.066601,
+      "p5_lgb": 0.032896
+    },
+    {
+      "c20_r9_pf128_full": 0.754476,
+      "p14_cat": 0.095002,
+      "p14_lgb": 0.069976,
+      "c06_xgb_default": 0.032896
+    },
+    {
+      "c20_r9_pf128_full": 0.722585,
+      "p14_lgb": 0.118394,
+      "p14_cat": 0.106731
+    },
+    {
+      "c20_r9_pf128_full": 0.764126,
+      "p14_lgb": 0.093942,
+      "p14_cat": 0.076477,
+      "p5_lgb": 0.029241
+    }
+  ],
+  "fold_history": [
+    [
+      {
+        "iter": 0,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 10.033047958000598,
+        "delta": 2.4180893030443773
+      },
+      {
+        "iter": 1,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 8.718449017154423,
+        "delta": 1.3145989408461745
+      },
+      {
+        "iter": 2,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 8.05143670008713,
+        "delta": 0.667012317067293
+      },
+      {
+        "iter": 3,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.756677178457337,
+        "delta": 0.2947595216297936
+      },
+      {
+        "iter": 4,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.659713427650243,
+        "delta": 0.09696375080709352
+      },
+      {
+        "iter": 5,
+        "picked": "p14_lgb",
+        "weight": 0.2,
+        "train_perwell": 7.5708455102783185,
+        "delta": 0.08886791737192468
+      },
+      {
+        "iter": 6,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.5153991291337565,
+        "delta": 0.05544638114456202
+      },
+      {
+        "iter": 7,
+        "picked": "p14_cat",
+        "weight": 0.1,
+        "train_perwell": 7.499274816251806,
+        "delta": 0.016124312881950154
+      },
+      {
+        "iter": 8,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.2,
+        "train_perwell": 7.48570108745135,
+        "delta": 0.013573728800456486
+      },
+      {
+        "iter": 9,
+        "picked": "p14_cat",
+        "weight": 0.05,
+        "train_perwell": 7.479661835950752,
+        "delta": 0.006039251500597587
+      },
+      {
+        "iter": 10,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 7.477642070955101,
+        "delta": 0.002019764995651485
+      }
+    ],
+    [
+      {
+        "iter": 0,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 10.326002281179465,
+        "delta": 2.4756745013218424
+      },
+      {
+        "iter": 1,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 8.9684069093672,
+        "delta": 1.3575953718122644
+      },
+      {
+        "iter": 2,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 8.271053813065004,
+        "delta": 0.6973530963021961
+      },
+      {
+        "iter": 3,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.954828903211069,
+        "delta": 0.31622490985393537
+      },
+      {
+        "iter": 4,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.841886678387094,
+        "delta": 0.11294222482397487
+      },
+      {
+        "iter": 5,
+        "picked": "p14_cat",
+        "weight": 0.2,
+        "train_perwell": 7.760591901957005,
+        "delta": 0.08129477643008887
+      },
+      {
+        "iter": 6,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.696589282959864,
+        "delta": 0.06400261899714099
+      },
+      {
+        "iter": 7,
+        "picked": "p14_lgb",
+        "weight": 0.05,
+        "train_perwell": 7.683602759638576,
+        "delta": 0.012986523321288246
+      },
+      {
+        "iter": 8,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 7.678763027652446,
+        "delta": 0.004839731986129969
+      },
+      {
+        "iter": 9,
+        "picked": "p5_lgb",
+        "weight": 0.05,
+        "train_perwell": 7.670777619634603,
+        "delta": 0.00798540801784231
+      },
+      {
+        "iter": 10,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 7.665316763626198,
+        "delta": 0.0054608560084057345
+      },
+      {
+        "iter": 11,
+        "picked": "p14_lgb",
+        "weight": 0.05,
+        "train_perwell": 7.662317851708347,
+        "delta": 0.0029989119178504
+      },
+      {
+        "iter": 12,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 7.656921346757504,
+        "delta": 0.005396504950843095
+      },
+      {
+        "iter": 13,
+        "picked": "p14_cat",
+        "weight": 0.05,
+        "train_perwell": 7.656544178756378,
+        "delta": 0.00037716800112619353
+      },
+      {
+        "iter": 14,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 7.650826608951335,
+        "delta": 0.005717569805042899
+      }
+    ],
+    [
+      {
+        "iter": 0,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 10.421692035563948,
+        "delta": 2.52511531005182
+      },
+      {
+        "iter": 1,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 9.012544503865685,
+        "delta": 1.4091475316982631
+      },
+      {
+        "iter": 2,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 8.270275366467489,
+        "delta": 0.7422691373981962
+      },
+      {
+        "iter": 3,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.912187758893142,
+        "delta": 0.35808760757434666
+      },
+      {
+        "iter": 4,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.76467875918553,
+        "delta": 0.147508999707612
+      },
+      {
+        "iter": 5,
+        "picked": "p14_lgb",
+        "weight": 0.1,
+        "train_perwell": 7.696782399511189,
+        "delta": 0.06789635967434116
+      },
+      {
+        "iter": 6,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.645329056160214,
+        "delta": 0.05145334335097562
+      },
+      {
+        "iter": 7,
+        "picked": "p14_cat",
+        "weight": 0.1,
+        "train_perwell": 7.604540458335749,
+        "delta": 0.040788597824464645
+      },
+      {
+        "iter": 8,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.2,
+        "train_perwell": 7.590264637935831,
+        "delta": 0.01427582039991826
+      },
+      {
+        "iter": 9,
+        "picked": "c06_xgb_default",
+        "weight": 0.05,
+        "train_perwell": 7.57418730971978,
+        "delta": 0.0160773282160509
+      },
+      {
+        "iter": 10,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 7.571613143193245,
+        "delta": 0.00257416652653486
+      },
+      {
+        "iter": 11,
+        "picked": "p14_lgb",
+        "weight": 0.05,
+        "train_perwell": 7.56273765353151,
+        "delta": 0.008875489661734903
+      },
+      {
+        "iter": 12,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 7.559159966099012,
+        "delta": 0.003577687432498422
+      },
+      {
+        "iter": 13,
+        "picked": "p14_cat",
+        "weight": 0.05,
+        "train_perwell": 7.555981232871919,
+        "delta": 0.0031787332270925006
+      },
+      {
+        "iter": 14,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 7.551040754114726,
+        "delta": 0.0049404787571933895
+      }
+    ],
+    [
+      {
+        "iter": 0,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 10.322283020036407,
+        "delta": 2.522253232588506
+      },
+      {
+        "iter": 1,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 8.938932286659432,
+        "delta": 1.3833507333769752
+      },
+      {
+        "iter": 2,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 8.229961547688102,
+        "delta": 0.7089707389713293
+      },
+      {
+        "iter": 3,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.908304946745742,
+        "delta": 0.3216566009423607
+      },
+      {
+        "iter": 4,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.795409971247584,
+        "delta": 0.11289497549815763
+      },
+      {
+        "iter": 5,
+        "picked": "p14_lgb",
+        "weight": 0.2,
+        "train_perwell": 7.684304321494003,
+        "delta": 0.11110564975358095
+      },
+      {
+        "iter": 6,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.629602483403601,
+        "delta": 0.05470183809040208
+      },
+      {
+        "iter": 7,
+        "picked": "p14_cat",
+        "weight": 0.1,
+        "train_perwell": 7.608326941837979,
+        "delta": 0.021275541565621836
+      },
+      {
+        "iter": 8,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.2,
+        "train_perwell": 7.597112458850515,
+        "delta": 0.01121448298746408
+      },
+      {
+        "iter": 9,
+        "picked": "p14_lgb",
+        "weight": 0.05,
+        "train_perwell": 7.58827994495671,
+        "delta": 0.008832513893804794
+      },
+      {
+        "iter": 10,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 7.586947502241869,
+        "delta": 0.001332442714841342
+      },
+      {
+        "iter": 11,
+        "picked": "p14_cat",
+        "weight": 0.05,
+        "train_perwell": 7.585840760949831,
+        "delta": 0.001106741292037583
+      },
+      {
+        "iter": 12,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 7.580470447636251,
+        "delta": 0.00537031331358051
+      }
+    ],
+    [
+      {
+        "iter": 0,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 10.45914999803645,
+        "delta": 2.5607882774656314
+      },
+      {
+        "iter": 1,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 9.031491934417321,
+        "delta": 1.4276580636191287
+      },
+      {
+        "iter": 2,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 8.27493059168647,
+        "delta": 0.7565613427308513
+      },
+      {
+        "iter": 3,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.909284227229237,
+        "delta": 0.3656463644572332
+      },
+      {
+        "iter": 4,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.760151657286159,
+        "delta": 0.14913256994307744
+      },
+      {
+        "iter": 5,
+        "picked": "p14_lgb",
+        "weight": 0.1,
+        "train_perwell": 7.707152241865486,
+        "delta": 0.05299941542067366
+      },
+      {
+        "iter": 6,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.65161530889356,
+        "delta": 0.05553693297192552
+      },
+      {
+        "iter": 7,
+        "picked": "p14_cat",
+        "weight": 0.1,
+        "train_perwell": 7.623049605667709,
+        "delta": 0.02856570322585128
+      },
+      {
+        "iter": 8,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.2,
+        "train_perwell": 7.604901704200703,
+        "delta": 0.018147901467005845
+      },
+      {
+        "iter": 9,
+        "picked": "p14_lgb",
+        "weight": 0.05,
+        "train_perwell": 7.596881831024148,
+        "delta": 0.008019873176555059
+      },
+      {
+        "iter": 10,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 7.591502717928136,
+        "delta": 0.005379113096012134
+      },
+      {
+        "iter": 11,
+        "picked": "p5_lgb",
+        "weight": 0.05,
+        "train_perwell": 7.588827424624864,
+        "delta": 0.002675293303271431
+      },
+      {
+        "iter": 12,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.2,
+        "train_perwell": 7.581043174710073,
+        "delta": 0.007784249914791097
+      },
+      {
+        "iter": 13,
+        "picked": "p14_cat",
+        "weight": 0.05,
+        "train_perwell": 7.575191439562368,
+        "delta": 0.005851735147705206
+      },
+      {
+        "iter": 14,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 7.573300710640118,
+        "delta": 0.0018907289222500623
+      },
+      {
+        "iter": 15,
+        "picked": "p14_lgb",
+        "weight": 0.05,
+        "train_perwell": 7.57278875052214,
+        "delta": 0.0005119601179783828
+      },
+      {
+        "iter": 16,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 7.56863869725963,
+        "delta": 0.004150053262510056
+      }
+    ]
+  ],
+  "wall_sec": 1106.3
+}
