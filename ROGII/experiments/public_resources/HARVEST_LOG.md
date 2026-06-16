@@ -55,3 +55,17 @@
 [2026-06-15 01:27] dataset DL ok: scottweeden/rogii-wellbore-trace-language-notebooks (0MB)
 [2026-06-15 01:27] Phase 1B datasets complete: dl=26 fail=0 desc=0 skip=10
 [2026-06-15 01:28] pull progress: 440/     684 | ok=440 fail=0 skip=0
+[2026-06-15 01:29] pull progress: 460/     684 | ok=460 fail=0 skip=0
+[2026-06-15 01:31] pull progress: 480/     684 | ok=480 fail=0 skip=0
+[2026-06-15 01:33] pull progress: 500/     684 | ok=500 fail=0 skip=0
+[2026-06-15 01:34] pull progress: 520/     684 | ok=520 fail=0 skip=0
+[2026-06-15 01:36] pull progress: 540/     684 | ok=540 fail=0 skip=0
+[2026-06-15 01:37] pull progress: 560/     684 | ok=560 fail=0 skip=0
+[2026-06-15 01:39] pull progress: 580/     684 | ok=580 fail=0 skip=0
+[2026-06-15 01:41] pull progress: 600/     684 | ok=600 fail=0 skip=0
+[2026-06-15 01:42] pull progress: 620/     684 | ok=620 fail=0 skip=0
+[2026-06-15 01:43] Phase 1A nearing completion: 635/684 kernels pulled (0 failures)
+[2026-06-15 01:44] pull progress: 640/     684 | ok=640 fail=0 skip=0
+[2026-06-15 01:45] pull progress: 660/     684 | ok=660 fail=0 skip=0
+[2026-06-15 01:47] pull progress: 680/     684 | ok=680 fail=0 skip=0
+[2026-06-15 01:47] Phase 1A pull complete: total=     684 ok=684 fail=0 skip=0
