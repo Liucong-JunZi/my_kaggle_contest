@@ -1,0 +1,14 @@
+{
+  "id": "smartorz/rogii-hill-climb-v3-notebook",
+  "title": "ROGII hill climb v3 (notebook)",
+  "code_file": "hillclimb_submit.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "dataset_sources": ["smartorz/rogii-pretrained-models-v1"],
+  "competition_sources": ["rogii-wellbore-geology-prediction"],
+  "kernel_sources": []
+}

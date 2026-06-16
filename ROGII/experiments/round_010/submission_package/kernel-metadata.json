@@ -1,0 +1,14 @@
+{
+  "id": "smartorz/rogii-pf-128seeds",
+  "title": "ROGII PF 128-seeds",
+  "code_file": "kaggle_submit.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "dataset_sources": [],
+  "competition_sources": ["rogii-wellbore-geology-prediction"],
+  "kernel_sources": []
+}

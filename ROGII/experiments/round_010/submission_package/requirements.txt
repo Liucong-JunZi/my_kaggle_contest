@@ -1,0 +1,6 @@
+# Kaggle Notebook environment already provides these.
+# Listed for reproducibility in case the Notebook is re-pinned.
+numpy>=1.23
+pandas>=1.5
+scipy>=1.9
+scikit-learn>=1.1

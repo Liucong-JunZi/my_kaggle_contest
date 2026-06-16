@@ -1,0 +1,15 @@
+{
+  "_comment": "Hill climb v3 averaged weights (run_v3_after_c20.json). Kept here as reference metadata only — the Kaggle Notebook submission ensemble_submit.py is pure PF and does NOT load any ML candidate, so these weights are not consumed at inference time. They document which models the offline OOF-blend pipeline would have used.",
+  "label": "run_v3_after_c20",
+  "perwell_avg_weights": 7.5660452441034876,
+  "flat_avg_weights": 10.31244030285901,
+  "best_single_id": "c20_r9_pf128_full",
+  "best_single_pw": 7.952197551727295,
+  "avg_weights": {
+    "c20_r9_pf128_full": 0.778502,
+    "p14_cat": 0.10894,
+    "p14_lgb": 0.092561,
+    "p5_lgb": 0.013075,
+    "c06_xgb_default": 0.006922
+  }
+}
