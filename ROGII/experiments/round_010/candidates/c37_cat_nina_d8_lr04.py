@@ -1,0 +1,45 @@
+"""c37_cat_nina_d8_lr04 — nina2025/rogii-h-blend CAT d=8 lr=0.04.
+
+Source: nina2025/rogii-h-blend-v1. CAT depth=8, lr=0.04, l2=3, iter=5000.
+Same shape as c35 but different verbose/fit defaults — kept distinct as
+a fully orthogonal CAT-d8 pull. (If duplicate, parent agent will dedup.)
+"""
+from catboost import CatBoostRegressor
+
+CANDIDATE_ID   = "c37_cat_nina_d8_lr04"
+CANDIDATE_TYPE = "catboost"
+DEFAULT_SEED   = 42
+
+HYPERPARAMS = dict(
+    iterations=5000,
+    depth=8,
+    l2_leaf_reg=3.0,
+    loss_function="RMSE",
+    eval_metric="RMSE",
+    od_type="Iter",
+    od_wait=200,
+    learning_rate=0.04,
+    bootstrap_type="Bernoulli",
+    subsample=0.85,
+)
+
+
+def get_features(df):
+    from shared.data_loader import feature_set_v14
+    feat_cols = feature_set_v14()
+    return df[feat_cols], feat_cols
+
+
+def fit_fold(X_tr, y_tr, X_va, y_va, seed):
+    m = CatBoostRegressor(
+        **HYPERPARAMS,
+        random_seed=seed,
+        verbose=False,
+        thread_count=-1,
+    )
+    m.fit(X_tr, y_tr, eval_set=(X_va, y_va), use_best_model=True)
+    return m
+
+
+def predict(model, X):
+    return model.predict(X)
