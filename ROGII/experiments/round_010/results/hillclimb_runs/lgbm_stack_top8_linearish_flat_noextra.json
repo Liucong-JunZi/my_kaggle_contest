@@ -1,0 +1,108 @@
+{
+  "label": "lgbm_stack_top8_linearish_flat_noextra",
+  "method": "lgbm_stacker",
+  "preset": "linearish",
+  "perwell_oof": 7.210969942280178,
+  "flat_oof": 9.467048645019531,
+  "n_features": 8,
+  "feature_names": [
+    "c20_r9_pf128_full",
+    "c52_ravaghi_lgb3",
+    "c51_ravaghi_lgb2",
+    "c53_ravaghi_cat1",
+    "c54_ravaghi_cat2",
+    "c50_ravaghi_lgb1",
+    "p14_cat",
+    "c03_lgb_huber"
+  ],
+  "top_n": 8,
+  "add_extra": false,
+  "params": {
+    "objective": "regression",
+    "metric": "rmse",
+    "learning_rate": 0.03,
+    "num_leaves": 7,
+    "min_data_in_leaf": 20000,
+    "feature_fraction": 0.9,
+    "bagging_fraction": 0.9,
+    "bagging_freq": 1,
+    "lambda_l1": 1.0,
+    "lambda_l2": 50.0,
+    "max_depth": 3,
+    "verbosity": -1,
+    "seed": 20260617,
+    "num_threads": -1
+  },
+  "num_boost_round": 800,
+  "early_stopping_rounds": 50,
+  "use_perwell_weights": false,
+  "fold_metrics": {
+    "fold_0": {
+      "perwell": 7.325771342583441,
+      "flat": 8.95698070526123,
+      "n": 751710
+    },
+    "fold_1": {
+      "perwell": 7.632126662234637,
+      "flat": 10.540217399597168,
+      "n": 743841
+    },
+    "fold_2": {
+      "perwell": 7.094500927253713,
+      "flat": 8.965631484985352,
+      "n": 839166
+    },
+    "fold_3": {
+      "perwell": 7.100607992568947,
+      "flat": 8.784441947937012,
+      "n": 694121
+    },
+    "fold_4": {
+      "perwell": 6.9041747641648685,
+      "flat": 9.977601051330566,
+      "n": 755151
+    }
+  },
+  "fold_best_iters": {
+    "fold_0": 470,
+    "fold_1": 102,
+    "fold_2": 85,
+    "fold_3": 142,
+    "fold_4": 104
+  },
+  "top_importances": [
+    [
+      "c20_r9_pf128_full",
+      3514692394.9773436
+    ],
+    [
+      "c52_ravaghi_lgb3",
+      2194635887.540625
+    ],
+    [
+      "c51_ravaghi_lgb2",
+      954481443.7390625
+    ],
+    [
+      "c54_ravaghi_cat2",
+      631648225.640625
+    ],
+    [
+      "c53_ravaghi_cat1",
+      434769510.4394531
+    ],
+    [
+      "c50_ravaghi_lgb1",
+      123212647.55195312
+    ],
+    [
+      "p14_cat",
+      94488056.3171875
+    ],
+    [
+      "c03_lgb_huber",
+      28135248.523046874
+    ]
+  ],
+  "wall_seconds": 16.03334903717041
+}

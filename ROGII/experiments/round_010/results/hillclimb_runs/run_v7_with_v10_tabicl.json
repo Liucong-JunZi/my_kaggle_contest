@@ -1,0 +1,917 @@
+{
+  "label": "run_v7_with_v10_tabicl",
+  "perwell_oof": 6.957151013529652,
+  "n_candidates_pool": 64,
+  "fold_histories": [
+    [
+      {
+        "iter": 0,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 10.033047958000607,
+        "delta": 2.4180893030443755
+      },
+      {
+        "iter": 1,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 8.718449017154425,
+        "delta": 1.3145989408461816
+      },
+      {
+        "iter": 2,
+        "picked": "v10_tabicl_A",
+        "weight": 0.3,
+        "train_perwell": 7.917539791142349,
+        "delta": 0.8009092260120765
+      },
+      {
+        "iter": 3,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.445988208551523,
+        "delta": 0.4715515825908252
+      },
+      {
+        "iter": 4,
+        "picked": "c54_ravaghi_cat2",
+        "weight": 0.3,
+        "train_perwell": 7.203033114045985,
+        "delta": 0.24295509450553876
+      },
+      {
+        "iter": 5,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.047932524410963,
+        "delta": 0.1551005896350217
+      },
+      {
+        "iter": 6,
+        "picked": "v10_tabicl_A",
+        "weight": 0.2,
+        "train_perwell": 6.983358399397893,
+        "delta": 0.06457412501306958
+      },
+      {
+        "iter": 7,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.2,
+        "train_perwell": 6.949058420468684,
+        "delta": 0.03429997892920955
+      },
+      {
+        "iter": 8,
+        "picked": "c54_ravaghi_cat2",
+        "weight": 0.1,
+        "train_perwell": 6.9157696414273,
+        "delta": 0.03328877904138405
+      },
+      {
+        "iter": 9,
+        "picked": "c50_ravaghi_lgb1",
+        "weight": 0.05,
+        "train_perwell": 6.910223993722041,
+        "delta": 0.005545647705258894
+      },
+      {
+        "iter": 10,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 6.902199394899201,
+        "delta": 0.008024598822840012
+      },
+      {
+        "iter": 11,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.894507624709737,
+        "delta": 0.007691770189463654
+      },
+      {
+        "iter": 12,
+        "picked": "c54_ravaghi_cat2",
+        "weight": 0.05,
+        "train_perwell": 6.891240421856108,
+        "delta": 0.0032672028536291364
+      },
+      {
+        "iter": 13,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 6.885102281073289,
+        "delta": 0.006138140782819157
+      },
+      {
+        "iter": 14,
+        "picked": "c50_ravaghi_lgb1",
+        "weight": 0.05,
+        "train_perwell": 6.878863296642065,
+        "delta": 0.0062389844312242815
+      },
+      {
+        "iter": 15,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.877801823089025,
+        "delta": 0.001061473553039427
+      },
+      {
+        "iter": 16,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.872559061206428,
+        "delta": 0.00524276188259698
+      },
+      {
+        "iter": 17,
+        "picked": "c54_ravaghi_cat2",
+        "weight": 0.05,
+        "train_perwell": 6.871360243455266,
+        "delta": 0.0011988177511623732
+      },
+      {
+        "iter": 18,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.866838831970266,
+        "delta": 0.004521411485000293
+      }
+    ],
+    [
+      {
+        "iter": 0,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 10.326002281179473,
+        "delta": 2.475674501321839
+      },
+      {
+        "iter": 1,
+        "picked": "v10_tabicl_A",
+        "weight": 0.3,
+        "train_perwell": 8.92390817667947,
+        "delta": 1.4020941045000033
+      },
+      {
+        "iter": 2,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 8.000750086207667,
+        "delta": 0.9231580904718033
+      },
+      {
+        "iter": 3,
+        "picked": "c54_ravaghi_cat2",
+        "weight": 0.3,
+        "train_perwell": 7.5701084365927755,
+        "delta": 0.43064164961489126
+      },
+      {
+        "iter": 4,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.259919362470473,
+        "delta": 0.31018907412230234
+      },
+      {
+        "iter": 5,
+        "picked": "v10_tabicl_A",
+        "weight": 0.3,
+        "train_perwell": 7.09972406643415,
+        "delta": 0.16019529603632332
+      },
+      {
+        "iter": 6,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.2,
+        "train_perwell": 7.0016131427504655,
+        "delta": 0.09811092368368435
+      },
+      {
+        "iter": 7,
+        "picked": "c52_ravaghi_lgb3",
+        "weight": 0.2,
+        "train_perwell": 6.965820091263377,
+        "delta": 0.035793051487088334
+      },
+      {
+        "iter": 8,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.2,
+        "train_perwell": 6.928541482399896,
+        "delta": 0.03727860886348111
+      },
+      {
+        "iter": 9,
+        "picked": "v10_tabicl_A",
+        "weight": 0.1,
+        "train_perwell": 6.903292463625461,
+        "delta": 0.025249018774434973
+      },
+      {
+        "iter": 10,
+        "picked": "c50_ravaghi_lgb1",
+        "weight": 0.05,
+        "train_perwell": 6.8966979876665695,
+        "delta": 0.006594475958891621
+      },
+      {
+        "iter": 11,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 6.889640234088393,
+        "delta": 0.007057753578176396
+      },
+      {
+        "iter": 12,
+        "picked": "c54_ravaghi_cat2",
+        "weight": 0.1,
+        "train_perwell": 6.879212191139178,
+        "delta": 0.010428042949214955
+      },
+      {
+        "iter": 13,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.875407395583505,
+        "delta": 0.003804795555673479
+      },
+      {
+        "iter": 14,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.869900583743186,
+        "delta": 0.005506811840318981
+      },
+      {
+        "iter": 15,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.867070172095938,
+        "delta": 0.0028304116472472884
+      },
+      {
+        "iter": 16,
+        "picked": "c50_ravaghi_lgb1",
+        "weight": 0.05,
+        "train_perwell": 6.8629658793061985,
+        "delta": 0.004104292789739894
+      },
+      {
+        "iter": 17,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.861513079350091,
+        "delta": 0.0014527999561071425
+      },
+      {
+        "iter": 18,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.856542388170471,
+        "delta": 0.004970691179620346
+      },
+      {
+        "iter": 19,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.855726588728224,
+        "delta": 0.0008157994422468562
+      },
+      {
+        "iter": 20,
+        "picked": "c51_ravaghi_lgb2",
+        "weight": 0.05,
+        "train_perwell": 6.851622686873412,
+        "delta": 0.004103901854811909
+      }
+    ],
+    [
+      {
+        "iter": 0,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 10.421692035563957,
+        "delta": 2.5251153100518167
+      },
+      {
+        "iter": 1,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 9.012544503865685,
+        "delta": 1.409147531698272
+      },
+      {
+        "iter": 2,
+        "picked": "v10_tabicl_A",
+        "weight": 0.3,
+        "train_perwell": 8.142218358625197,
+        "delta": 0.8703261452404885
+      },
+      {
+        "iter": 3,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.613626882226376,
+        "delta": 0.5285914763988204
+      },
+      {
+        "iter": 4,
+        "picked": "c53_ravaghi_cat1",
+        "weight": 0.3,
+        "train_perwell": 7.398662025059497,
+        "delta": 0.21496485716687896
+      },
+      {
+        "iter": 5,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.183469098121365,
+        "delta": 0.21519292693813252
+      },
+      {
+        "iter": 6,
+        "picked": "v10_tabicl_A",
+        "weight": 0.2,
+        "train_perwell": 7.098997577249408,
+        "delta": 0.08447152087195686
+      },
+      {
+        "iter": 7,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.2,
+        "train_perwell": 7.040623713281147,
+        "delta": 0.05837386396826094
+      },
+      {
+        "iter": 8,
+        "picked": "c50_ravaghi_lgb1",
+        "weight": 0.1,
+        "train_perwell": 7.015697287811389,
+        "delta": 0.024926425469757874
+      },
+      {
+        "iter": 9,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 7.0040785117421205,
+        "delta": 0.011618776069268755
+      },
+      {
+        "iter": 10,
+        "picked": "v10_tabicl_A",
+        "weight": 0.1,
+        "train_perwell": 6.986378588941517,
+        "delta": 0.017699922800603396
+      },
+      {
+        "iter": 11,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 6.974745110539104,
+        "delta": 0.011633478402413466
+      },
+      {
+        "iter": 12,
+        "picked": "c50_ravaghi_lgb1",
+        "weight": 0.05,
+        "train_perwell": 6.9672055022936545,
+        "delta": 0.007539608245449081
+      },
+      {
+        "iter": 13,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.964293111827848,
+        "delta": 0.0029123904658066024
+      },
+      {
+        "iter": 14,
+        "picked": "v10_tabicl_B",
+        "weight": 0.05,
+        "train_perwell": 6.957258939307555,
+        "delta": 0.007034172520293147
+      },
+      {
+        "iter": 15,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.9540407611154,
+        "delta": 0.0032181781921547525
+      },
+      {
+        "iter": 16,
+        "picked": "c51_ravaghi_lgb2",
+        "weight": 0.05,
+        "train_perwell": 6.949658703617935,
+        "delta": 0.004382057497465119
+      },
+      {
+        "iter": 17,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.946534127535767,
+        "delta": 0.0031245760821683177
+      },
+      {
+        "iter": 18,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.943335567980879,
+        "delta": 0.003198559554888014
+      },
+      {
+        "iter": 19,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.939687406571784,
+        "delta": 0.003648161409094186
+      },
+      {
+        "iter": 20,
+        "picked": "c50_ravaghi_lgb1",
+        "weight": 0.05,
+        "train_perwell": 6.937693359681476,
+        "delta": 0.001994046890308354
+      },
+      {
+        "iter": 21,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.934066561764512,
+        "delta": 0.003626797916964186
+      },
+      {
+        "iter": 22,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.932948913011611,
+        "delta": 0.0011176487529009904
+      },
+      {
+        "iter": 23,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.928804244055449,
+        "delta": 0.004144668956161723
+      },
+      {
+        "iter": 24,
+        "picked": "c51_ravaghi_lgb2",
+        "weight": 0.05,
+        "train_perwell": 6.928634497152863,
+        "delta": 0.0001697469025865317
+      },
+      {
+        "iter": 25,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.924582721243743,
+        "delta": 0.004051775909119648
+      }
+    ],
+    [
+      {
+        "iter": 0,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 10.322283020036416,
+        "delta": 2.522253232588504
+      },
+      {
+        "iter": 1,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 8.938932286659432,
+        "delta": 1.383350733376984
+      },
+      {
+        "iter": 2,
+        "picked": "v10_tabicl_A",
+        "weight": 0.3,
+        "train_perwell": 8.062473669843278,
+        "delta": 0.8764586168161532
+      },
+      {
+        "iter": 3,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.577693653416252,
+        "delta": 0.4847800164270266
+      },
+      {
+        "iter": 4,
+        "picked": "c54_ravaghi_cat2",
+        "weight": 0.3,
+        "train_perwell": 7.292383268482315,
+        "delta": 0.2853103849339371
+      },
+      {
+        "iter": 5,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.13913621299666,
+        "delta": 0.15324705548565465
+      },
+      {
+        "iter": 6,
+        "picked": "v10_tabicl_A",
+        "weight": 0.2,
+        "train_perwell": 7.061937442507841,
+        "delta": 0.07719877048881862
+      },
+      {
+        "iter": 7,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.2,
+        "train_perwell": 7.033841692338319,
+        "delta": 0.028095750169522482
+      },
+      {
+        "iter": 8,
+        "picked": "c51_ravaghi_lgb2",
+        "weight": 0.2,
+        "train_perwell": 6.980669573406023,
+        "delta": 0.05317211893229601
+      },
+      {
+        "iter": 9,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 6.964291320806612,
+        "delta": 0.01637825259941117
+      },
+      {
+        "iter": 10,
+        "picked": "c53_ravaghi_cat1",
+        "weight": 0.05,
+        "train_perwell": 6.9586933592951405,
+        "delta": 0.005597961511471183
+      },
+      {
+        "iter": 11,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.9549079834260645,
+        "delta": 0.003785375869076013
+      },
+      {
+        "iter": 12,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.949416181010924,
+        "delta": 0.00549180241514069
+      },
+      {
+        "iter": 13,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.946092656883341,
+        "delta": 0.0033235241275830774
+      },
+      {
+        "iter": 14,
+        "picked": "c52_ravaghi_lgb3",
+        "weight": 0.05,
+        "train_perwell": 6.941838170855502,
+        "delta": 0.004254486027838844
+      },
+      {
+        "iter": 15,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.939201063945039,
+        "delta": 0.0026371069104627054
+      },
+      {
+        "iter": 16,
+        "picked": "c53_ravaghi_cat1",
+        "weight": 0.05,
+        "train_perwell": 6.936122959703979,
+        "delta": 0.0030781042410605863
+      },
+      {
+        "iter": 17,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.934036868046025,
+        "delta": 0.0020860916579534816
+      },
+      {
+        "iter": 18,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.92994717935152,
+        "delta": 0.004089688694505433
+      },
+      {
+        "iter": 19,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.92807071649494,
+        "delta": 0.0018764628565799413
+      },
+      {
+        "iter": 20,
+        "picked": "c52_ravaghi_lgb3",
+        "weight": 0.05,
+        "train_perwell": 6.924714418568345,
+        "delta": 0.0033562979265946424
+      },
+      {
+        "iter": 21,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.92334681966011,
+        "delta": 0.0013675989082351236
+      },
+      {
+        "iter": 22,
+        "picked": "c52_ravaghi_lgb3",
+        "weight": 0.05,
+        "train_perwell": 6.921304864592728,
+        "delta": 0.0020419550673818065
+      },
+      {
+        "iter": 23,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.920284256557435,
+        "delta": 0.0010206080352928026
+      },
+      {
+        "iter": 24,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.916946844946634,
+        "delta": 0.0033374116108015883
+      },
+      {
+        "iter": 25,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.915993856351698,
+        "delta": 0.0009529885949355332
+      },
+      {
+        "iter": 26,
+        "picked": "c54_ravaghi_cat2",
+        "weight": 0.05,
+        "train_perwell": 6.913487445900346,
+        "delta": 0.002506410451352359
+      },
+      {
+        "iter": 27,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.912928912612179,
+        "delta": 0.00055853328816724
+      },
+      {
+        "iter": 28,
+        "picked": "c52_ravaghi_lgb3",
+        "weight": 0.05,
+        "train_perwell": 6.911237125516346,
+        "delta": 0.0016917870958330639
+      },
+      {
+        "iter": 29,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.910942242856433,
+        "delta": 0.00029488265991250984
+      },
+      {
+        "iter": 30,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.90809094661665,
+        "delta": 0.0028512962397835295
+      },
+      {
+        "iter": 31,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.907770257448942,
+        "delta": 0.0003206891677072221
+      },
+      {
+        "iter": 32,
+        "picked": "c52_ravaghi_lgb3",
+        "weight": 0.05,
+        "train_perwell": 6.9057079929638725,
+        "delta": 0.0020622644850698535
+      }
+    ],
+    [
+      {
+        "iter": 0,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 10.459149998036459,
+        "delta": 2.5607882774656296
+      },
+      {
+        "iter": 1,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 9.031491934417323,
+        "delta": 1.4276580636191358
+      },
+      {
+        "iter": 2,
+        "picked": "v10_tabicl_A",
+        "weight": 0.3,
+        "train_perwell": 8.150385489396227,
+        "delta": 0.8811064450210964
+      },
+      {
+        "iter": 3,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.619857424130489,
+        "delta": 0.530528065265738
+      },
+      {
+        "iter": 4,
+        "picked": "c54_ravaghi_cat2",
+        "weight": 0.3,
+        "train_perwell": 7.392188486112819,
+        "delta": 0.2276689380176693
+      },
+      {
+        "iter": 5,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.3,
+        "train_perwell": 7.178608561750086,
+        "delta": 0.2135799243627332
+      },
+      {
+        "iter": 6,
+        "picked": "v10_tabicl_A",
+        "weight": 0.2,
+        "train_perwell": 7.100334798944439,
+        "delta": 0.07827376280564735
+      },
+      {
+        "iter": 7,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.2,
+        "train_perwell": 7.04506329579513,
+        "delta": 0.055271503149309176
+      },
+      {
+        "iter": 8,
+        "picked": "c50_ravaghi_lgb1",
+        "weight": 0.1,
+        "train_perwell": 7.02158989184311,
+        "delta": 0.023473403952019467
+      },
+      {
+        "iter": 9,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 7.011186426080498,
+        "delta": 0.010403465762611752
+      },
+      {
+        "iter": 10,
+        "picked": "v10_tabicl_B",
+        "weight": 0.1,
+        "train_perwell": 6.99373204985543,
+        "delta": 0.017454376225068735
+      },
+      {
+        "iter": 11,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 6.983390925338433,
+        "delta": 0.010341124516996203
+      },
+      {
+        "iter": 12,
+        "picked": "c51_ravaghi_lgb2",
+        "weight": 0.1,
+        "train_perwell": 6.974567586743406,
+        "delta": 0.008823338595027153
+      },
+      {
+        "iter": 13,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.1,
+        "train_perwell": 6.965461554707524,
+        "delta": 0.00910603203588245
+      },
+      {
+        "iter": 14,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.958034320641177,
+        "delta": 0.0074272340663466
+      },
+      {
+        "iter": 15,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.955988869510555,
+        "delta": 0.0020454511306224887
+      },
+      {
+        "iter": 16,
+        "picked": "c54_ravaghi_cat2",
+        "weight": 0.05,
+        "train_perwell": 6.952083321125884,
+        "delta": 0.0039055483846706096
+      },
+      {
+        "iter": 17,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.9500107898132,
+        "delta": 0.002072531312683701
+      },
+      {
+        "iter": 18,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.945616764964011,
+        "delta": 0.004394024849189826
+      },
+      {
+        "iter": 19,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.943165479526983,
+        "delta": 0.0024512854370275505
+      },
+      {
+        "iter": 20,
+        "picked": "c50_ravaghi_lgb1",
+        "weight": 0.05,
+        "train_perwell": 6.9414423279185895,
+        "delta": 0.001723151608393536
+      },
+      {
+        "iter": 21,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.938899055898726,
+        "delta": 0.002543272019863707
+      },
+      {
+        "iter": 22,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.936770214416237,
+        "delta": 0.00212884148248893
+      },
+      {
+        "iter": 23,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.933817171729472,
+        "delta": 0.002953042686764995
+      },
+      {
+        "iter": 24,
+        "picked": "c54_ravaghi_cat2",
+        "weight": 0.05,
+        "train_perwell": 6.933442132573659,
+        "delta": 0.00037503915581282854
+      },
+      {
+        "iter": 25,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.930500172652715,
+        "delta": 0.0029419599209443703
+      },
+      {
+        "iter": 26,
+        "picked": "v10_tabicl_A",
+        "weight": 0.05,
+        "train_perwell": 6.930183073761656,
+        "delta": 0.00031709889105879796
+      },
+      {
+        "iter": 27,
+        "picked": "c20_r9_pf128_full",
+        "weight": 0.05,
+        "train_perwell": 6.9268244848295355,
+        "delta": 0.0033585889321203766
+      }
+    ]
+  ],
+  "averaged_weights": {
+    "c20_r9_pf128_full": 0.5028569013483001,
+    "v10_tabicl_A": 0.19441129734773116,
+    "c54_ravaghi_cat2": 0.09492358689965985,
+    "c50_ravaghi_lgb1": 0.060044610924396336,
+    "c52_ravaghi_lgb3": 0.04821063418364803,
+    "c51_ravaghi_lgb2": 0.04564549095942647,
+    "c53_ravaghi_cat1": 0.016237222462336894,
+    "v10_tabicl_B": 0.01279830211826902
+  },
+  "wall_seconds": 617.9196727275848
+}

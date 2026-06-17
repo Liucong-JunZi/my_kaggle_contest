@@ -41,6 +41,7 @@ experiments/round_010/results/candidates/
 experiments/round_010/results/joined_features.parquet
 experiments/round_010/results/global_folds.parquet
 experiments/round_010/results/hillclimb_runs/*_oof.parquet
+experiments/round_010/results/hillclimb_runs/*.log
 experiments/round_010/catboost_info/
 
 # Public resource harvest — raw downloads not tracked, only digested notes
@@ -56,16 +57,24 @@ kaggle_kernels/
 /r*-rogii-*.log
 /v*_out/
 
-# Generated submission CSVs (regenerable)
+# Generated submission CSVs / large upload payloads (regenerable)
 experiments/round_009/submission.csv
 experiments/round_010/submission_v3.csv
+experiments/round_010/submission_package/joined_features_dataset/*.parquet
 
-# round_010 logs (regenerable)
+# round_010 logs/reports (regenerable)
 experiments/round_010/logs/
 experiments/round_010/results/candidates_logs/
+experiments/round_010/results/audits/*.json
+experiments/round_010/ravaghi_fork_logs*/
 experiments/round_010/*.log
 
-# round_010 large model artifacts (already in Kaggle dataset, regenerable from export_models.py)
+# round_010 large model artifacts / Kaggle dataset payloads (regenerable or uploaded separately)
 experiments/round_010/submission_package/hillclimb_v3_kernel/lgb_model.txt
 experiments/round_010/submission_package/hillclimb_v3_kernel/cat_model.cbm
 experiments/round_010/submission_package/hillclimb_v3_dataset/
+experiments/round_010/submission_package/joined_features_dataset/
+
+# Kaggle package-manager helper downloads (regenerable)
+experiments/round_010/submission_package/pm_hill/
+experiments/round_010/submission_package/pm_ridge/

@@ -1,0 +1,22 @@
+{
+  "id": "smartorz/rogii-ravaghi-hill-resubmit",
+  "title": "ROGII ravaghi hill resubmit",
+  "code_file": "ravaghi_hill.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "dataset_sources": [
+    "ravaghi/wellbore-geology-prediction-artifacts"
+  ],
+  "competition_sources": [
+    "rogii-wellbore-geology-prediction"
+  ],
+  "kernel_sources": [
+    "packagemanager/pm-118770072-at-06-08-2026-10-56-43"
+  ],
+  "model_sources": [],
+  "keywords": []
+}

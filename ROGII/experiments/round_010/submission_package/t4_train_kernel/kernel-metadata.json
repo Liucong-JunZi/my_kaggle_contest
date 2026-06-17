@@ -1,0 +1,15 @@
+{
+  "id": "smartorz/rogii-t4-train-mlp",
+  "title": "ROGII T4 train MLP",
+  "code_file": "train_t4.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "machine_shape": "GpuT4x2",
+  "enable_internet": false,
+  "dataset_sources": ["smartorz/rogii-r10-joined-features"],
+  "competition_sources": [],
+  "kernel_sources": []
+}

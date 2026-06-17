@@ -1,0 +1,22 @@
+{
+  "id": "smartorz/rogii-ravaghi-ridge-resubmit",
+  "title": "ROGII ravaghi ridge resubmit",
+  "code_file": "ravaghi_ridge.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "dataset_sources": [
+    "ravaghi/wellbore-geology-prediction-artifacts"
+  ],
+  "competition_sources": [
+    "rogii-wellbore-geology-prediction"
+  ],
+  "kernel_sources": [
+    "packagemanager/pm-121679840-at-06-06-2026-02-06-38"
+  ],
+  "model_sources": [],
+  "keywords": []
+}
