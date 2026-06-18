@@ -36,6 +36,15 @@ SETS = {
         "c50_ravaghi_lgb1", "c51_ravaghi_lgb2", "c52_ravaghi_lgb3", "c53_ravaghi_cat1", "c54_ravaghi_cat2",
         "c76_pilkwang_blend_pp",
     ],
+    "runv8_plus_chesnikov_v50": [
+        "c20_r9_pf128_full",
+        "v10_tabicl_A", "v10_tabicl_B",
+        "c50_ravaghi_lgb1", "c51_ravaghi_lgb2", "c52_ravaghi_lgb3", "c53_ravaghi_cat1", "c54_ravaghi_cat2",
+        "c76_pilkwang_blend_pp", "c77_hamatz_b_meta",
+        "c87_chesnikov_v50_lgb1", "c88_chesnikov_v50_lgb2", "c89_chesnikov_v50_lgb3",
+        "c90_chesnikov_v50_cat1", "c91_chesnikov_v50_cat2", "c92_chesnikov_v50_cat3",
+        "c93_chesnikov_v50_phaseb_lgb_fast", "c94_chesnikov_v50_phaseb_lgb_slow", "c95_chesnikov_v50_phaseb_cb",
+    ],
 }
 
 
