@@ -1,0 +1,16 @@
+{
+  "id": "smartorz/rogii-run-v12-hidden-safe-pf-ravaghi",
+  "title": "ROGII run v12 hidden safe PF ravaghi",
+  "code_file": "hillclimb_submit.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "dataset_sources": [
+    "ravaghi/wellbore-geology-prediction-artifacts"
+  ],
+  "competition_sources": ["rogii-wellbore-geology-prediction"],
+  "kernel_sources": []
+}
