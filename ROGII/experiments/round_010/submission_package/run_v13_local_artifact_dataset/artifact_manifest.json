@@ -1,0 +1,184 @@
+{
+  "artifact_version": "run_v13_local_artifacts_v1",
+  "git_commit": "19248e5ed52c38cc8e9837fb5a5d295870726d27",
+  "hidden_safe": true,
+  "uses_public_test_predictions": false,
+  "prediction_space": "offset",
+  "final_output_space": "absolute_tvt",
+  "weights_file": "ensemble_weights.json",
+  "metrics_file": "metrics/runv13_hillclimb.json",
+  "pf_source": {
+    "module": "src/pf_features.py",
+    "candidate_id": "c20_r9_pf128_full",
+    "select_scale": 8,
+    "note": "PF module is packaged locally; verify exact parity before submission."
+  },
+  "ravaghi_models": {
+    "c50_ravaghi_lgb1": {
+      "candidate_id": "c50_ravaghi_lgb1",
+      "model_type": "lightgbm",
+      "prediction_reducer": "mean",
+      "n_fold_models": 5,
+      "model_files": [
+        "fold_0.txt",
+        "fold_1.txt",
+        "fold_2.txt",
+        "fold_3.txt",
+        "fold_4.txt"
+      ],
+      "feature_names_file": "feature_names.json",
+      "source_path": "/Users/liucong/code/kaggle/ROGII/experiments/public_resources/datasets_raw/ravaghi-artifacts/models/lightgbm-1/lgbmregressor_trainer_20260526182612.pkl",
+      "source_sha256": "5b8c34db51508138826c682d9dc0787557f6bccdb9fbb858d3fad27dc0a84a39",
+      "trainer_overall_score": 10.766785799946081,
+      "trainer_fold_scores": [
+        9.639739449993666,
+        11.204347916634662,
+        9.845405916451504,
+        11.674014896420868,
+        11.31190591963693
+      ]
+    },
+    "c51_ravaghi_lgb2": {
+      "candidate_id": "c51_ravaghi_lgb2",
+      "model_type": "lightgbm",
+      "prediction_reducer": "mean",
+      "n_fold_models": 5,
+      "model_files": [
+        "fold_0.txt",
+        "fold_1.txt",
+        "fold_2.txt",
+        "fold_3.txt",
+        "fold_4.txt"
+      ],
+      "feature_names_file": "feature_names.json",
+      "source_path": "/Users/liucong/code/kaggle/ROGII/experiments/public_resources/datasets_raw/ravaghi-artifacts/models/lightgbm-2/lgbmregressor_trainer_20260526190415.pkl",
+      "source_sha256": "4384298a78736530f7b9b00a2908f9c8be478e5856b64cbc8f1f34a3d5889944",
+      "trainer_overall_score": 10.485238926940431,
+      "trainer_fold_scores": [
+        9.46658313053839,
+        10.830967877928279,
+        9.541640850767845,
+        11.525874028041137,
+        10.903987053587308
+      ]
+    },
+    "c52_ravaghi_lgb3": {
+      "candidate_id": "c52_ravaghi_lgb3",
+      "model_type": "lightgbm",
+      "prediction_reducer": "mean",
+      "n_fold_models": 5,
+      "model_files": [
+        "fold_0.txt",
+        "fold_1.txt",
+        "fold_2.txt",
+        "fold_3.txt",
+        "fold_4.txt"
+      ],
+      "feature_names_file": "feature_names.json",
+      "source_path": "/Users/liucong/code/kaggle/ROGII/experiments/public_resources/datasets_raw/ravaghi-artifacts/models/lightgbm-3/lgbmregressor_trainer_20260526192806.pkl",
+      "source_sha256": "053d458f382aa1bdc2f22525e13d7ecb3c6b20a7637144eb8b708ef005cef5be",
+      "trainer_overall_score": 10.47332790043362,
+      "trainer_fold_scores": [
+        9.440967372355802,
+        10.76979974969844,
+        9.539696510535858,
+        11.455079065826874,
+        11.005497850272551
+      ]
+    },
+    "c53_ravaghi_cat1": {
+      "candidate_id": "c53_ravaghi_cat1",
+      "model_type": "catboost",
+      "prediction_reducer": "mean",
+      "n_fold_models": 5,
+      "model_files": [
+        "fold_0.cbm",
+        "fold_1.cbm",
+        "fold_2.cbm",
+        "fold_3.cbm",
+        "fold_4.cbm"
+      ],
+      "feature_names_file": "feature_names.json",
+      "source_path": "/Users/liucong/code/kaggle/ROGII/experiments/public_resources/datasets_raw/ravaghi-artifacts/models/catboost-1/catboostregressor_trainer_20260526193740.pkl",
+      "source_sha256": "5ea8b0705fae314bbd4194ee92c3eb5d2292ba761bd177b91ed898ac72ddf867",
+      "trainer_overall_score": 10.575040956891591,
+      "trainer_fold_scores": [
+        9.753873437023763,
+        10.80825460121818,
+        9.548317660363415,
+        11.543571870223156,
+        11.080745949815642
+      ]
+    },
+    "c54_ravaghi_cat2": {
+      "candidate_id": "c54_ravaghi_cat2",
+      "model_type": "catboost",
+      "prediction_reducer": "mean",
+      "n_fold_models": 5,
+      "model_files": [
+        "fold_0.cbm",
+        "fold_1.cbm",
+        "fold_2.cbm",
+        "fold_3.cbm",
+        "fold_4.cbm"
+      ],
+      "feature_names_file": "feature_names.json",
+      "source_path": "/Users/liucong/code/kaggle/ROGII/experiments/public_resources/datasets_raw/ravaghi-artifacts/models/catboost-2/catboostregressor_trainer_20260526194838.pkl",
+      "source_sha256": "3abcc44faebd1f374320e5939b19f6a5e911f9b2ac75f55054dd860e37aca4f4",
+      "trainer_overall_score": 10.555027391459404,
+      "trainer_fold_scores": [
+        9.814318421591885,
+        10.772469416724975,
+        9.508063916486375,
+        11.449819616894976,
+        11.09863585812093
+      ]
+    }
+  },
+  "files_sha256": {
+    "dataset-metadata.json": "065d01f36858c4c07036ee766ffe3917f2c2676db0cf17b4864851abc6f145a4",
+    "ensemble_weights.json": "933d16e5c4195032989123cd52161c23a79adb7a25a55c6fb258d62b578b2d7c",
+    "metrics/runv13_hillclimb.json": "3f5fca4fedc21c603e68fc7af14ca240650fae3acbe3bd08ff9ba705bc0b2fd6",
+    "models/ravaghi/c50_ravaghi_lgb1/feature_names.json": "8816358c8ac8b81d1adad8f3fb225f81d43e21db5f142af1c1a2a3bfe5b32ba0",
+    "models/ravaghi/c50_ravaghi_lgb1/fold_0.txt": "a75ee1cf30af87d60e212a98a1c2998d24e3196fac7b270bfc3a1c01dae8b04e",
+    "models/ravaghi/c50_ravaghi_lgb1/fold_1.txt": "ea17ec2fc9b508edb6a3bcf6b683cb02d8eb8fd90ee8768bb7829f451a9933e6",
+    "models/ravaghi/c50_ravaghi_lgb1/fold_2.txt": "7a17bcd48607ccdb7ada5a42f1ccb766b2c4478df35dd73ebc150dc39a938a89",
+    "models/ravaghi/c50_ravaghi_lgb1/fold_3.txt": "efc3b4445f0b8cb063417c110ffd1a7b8aa6ddf9f85aae54017033ec460f6cc6",
+    "models/ravaghi/c50_ravaghi_lgb1/fold_4.txt": "59b696d88f96ec31a5cbecc0950adeaeaa5dd89b612665ca76723560a790e263",
+    "models/ravaghi/c50_ravaghi_lgb1/meta.json": "af37ff3bdf342dffb59616eedccea186600fea0ebac24ed666820b63d876f5dc",
+    "models/ravaghi/c51_ravaghi_lgb2/feature_names.json": "8816358c8ac8b81d1adad8f3fb225f81d43e21db5f142af1c1a2a3bfe5b32ba0",
+    "models/ravaghi/c51_ravaghi_lgb2/fold_0.txt": "71a4c79bb15a516bc6fa677e9e3ddcb0d457159c14445c6858ab4a96959d0e76",
+    "models/ravaghi/c51_ravaghi_lgb2/fold_1.txt": "c91f2b582f15378184bce4459d25d757e9d8202325e5a66b2ed1139c74279389",
+    "models/ravaghi/c51_ravaghi_lgb2/fold_2.txt": "793d32fbbea4b5b4487120813a7c21c873dddc8ef2bc157c9f98eed2641af59d",
+    "models/ravaghi/c51_ravaghi_lgb2/fold_3.txt": "2a861757da28f61a5ba41c99c88c36bf732e0c0b6d4dea380509f7b023045b5e",
+    "models/ravaghi/c51_ravaghi_lgb2/fold_4.txt": "6d79d1f5d8bd010ee7133a46e34b17c75b2205407f611a5507141bf9236ff524",
+    "models/ravaghi/c51_ravaghi_lgb2/meta.json": "13857e32710d639dbc330c895ea105a9eee250bacc826a7a9af5816c20d25be1",
+    "models/ravaghi/c52_ravaghi_lgb3/feature_names.json": "8816358c8ac8b81d1adad8f3fb225f81d43e21db5f142af1c1a2a3bfe5b32ba0",
+    "models/ravaghi/c52_ravaghi_lgb3/fold_0.txt": "33de57e72731926f9f9a822e445d11d179c199cf7c90d722db535424d2433525",
+    "models/ravaghi/c52_ravaghi_lgb3/fold_1.txt": "6f616656a3e7c49cb5088d3068d7cd21b00344e0957188614ba7d8c409a2e940",
+    "models/ravaghi/c52_ravaghi_lgb3/fold_2.txt": "6458e8a9a277094ab7aaed1225a4922e61f49975a84dc2b405bdcbde341ebb4b",
+    "models/ravaghi/c52_ravaghi_lgb3/fold_3.txt": "db73b9924b54e7b06642ff567715decd3c9e2d97840a89b1fb91afbdb9617448",
+    "models/ravaghi/c52_ravaghi_lgb3/fold_4.txt": "237c1d924a2af9104a829e3282dc153266cc8e8e7905d98228f4b45ffbcdc959",
+    "models/ravaghi/c52_ravaghi_lgb3/meta.json": "770e551151cab50c0eda494d4b6b41882b02f921634fa754551e8ff23a0d05f6",
+    "models/ravaghi/c53_ravaghi_cat1/feature_names.json": "8816358c8ac8b81d1adad8f3fb225f81d43e21db5f142af1c1a2a3bfe5b32ba0",
+    "models/ravaghi/c53_ravaghi_cat1/fold_0.cbm": "14686d5d8f520b1cdf7928def9fd3ae81fa0604f457aa1578efc7e07ccb4a79f",
+    "models/ravaghi/c53_ravaghi_cat1/fold_1.cbm": "f0a478f1d88544c3393e947dd84e866fd9412e5745d9a0117d6c3822b02bb7b0",
+    "models/ravaghi/c53_ravaghi_cat1/fold_2.cbm": "ea789f47f53b65207c49a457c001bd0aacec18d30087ffbb63ecc29855ad7257",
+    "models/ravaghi/c53_ravaghi_cat1/fold_3.cbm": "6d4645a7d202058913d4933651336c1b12f748ae587260136da2a26a3008b21d",
+    "models/ravaghi/c53_ravaghi_cat1/fold_4.cbm": "11509e52a55a7dcfb4d62b0d7a6e8131b73cb2e0eb587159a07f9e109b69903d",
+    "models/ravaghi/c53_ravaghi_cat1/meta.json": "58c74d8f2d979840c7fe6a5c720c9949df9b2ff5b9ac6085aa93d14f3620a7b5",
+    "models/ravaghi/c54_ravaghi_cat2/feature_names.json": "8816358c8ac8b81d1adad8f3fb225f81d43e21db5f142af1c1a2a3bfe5b32ba0",
+    "models/ravaghi/c54_ravaghi_cat2/fold_0.cbm": "466ab620e1c7433a8f5cd8e17e58d559ca35bab4d8d76f6373033898e7faf547",
+    "models/ravaghi/c54_ravaghi_cat2/fold_1.cbm": "897a12df57266aa2e12acd8b46fa33b20ddccabc49f4d50b1d41a23c3e0c90a2",
+    "models/ravaghi/c54_ravaghi_cat2/fold_2.cbm": "171edca8c3c07fca019e626edbc9c313223fb51623dd3cf762ed2cdf2cffe65b",
+    "models/ravaghi/c54_ravaghi_cat2/fold_3.cbm": "35f87aaa75d3907dade20f081fcfb9143f174e9de1ecd6ee5158267796ccda68",
+    "models/ravaghi/c54_ravaghi_cat2/fold_4.cbm": "6c20c53d019cf447e0207c5cbdf68f273b2e7c5b4cf9de5cf38f1181bd65d83c",
+    "models/ravaghi/c54_ravaghi_cat2/meta.json": "5c38af5ea9511a1cbede34cdd197aa094076cfe8534a9b58a4357a9e98e50365",
+    "oof/c20_r9_pf128_full.parquet": "a86a50415e5e79fc08f470c8bdfdd5e1404c4122dce4c9f88e9f1e9387e0c900",
+    "oof/runv13_hillclimb_oof.parquet": "57f5511d4699d7c4736f914dc758ea7f71a8deb5eadeadee144aaa5b47c46e64",
+    "src/native_predict.py": "8a197a784bc0d3026a7b7f759b9d4193dad57a04f1d32d8f38e34dd13a562660",
+    "src/pf_features.py": "023d56125d2334a3ae465629a1a8204fb555667b769e3c50bd4cdff871700b26",
+    "src/pipeline.py": "371137171254b958874c767cbd667335c2dcd9cf56822a46fa8d5cc699b6240c",
+    "src/ravaghi_features.py": "f7d0b35c846f814936c455e7f3dda705099437d66a9b8bc2e011a915c26f5539"
+  }
+}

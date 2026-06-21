@@ -1,0 +1,17 @@
+{
+  "label": "runv13_hillclimb",
+  "fuser": "hillclimb",
+  "prediction_space": "offset",
+  "final_output_space": "absolute_tvt",
+  "weights": {
+    "c20_r9_pf128_full": 0.5291714916147652,
+    "c51_ravaghi_lgb2": 0.1535731451526435,
+    "c54_ravaghi_cat2": 0.11175844086902667,
+    "c50_ravaghi_lgb1": 0.0879452049930177,
+    "c53_ravaghi_cat1": 0.05929910702037566,
+    "c52_ravaghi_lgb3": 0.03759614717512768
+  },
+  "pf_offset_component": "c20_r9_pf128_full",
+  "pp_params": null,
+  "sg_params": null
+}

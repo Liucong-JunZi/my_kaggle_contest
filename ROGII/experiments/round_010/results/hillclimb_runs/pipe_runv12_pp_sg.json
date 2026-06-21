@@ -1,0 +1,70 @@
+{
+  "label": "pipe_runv12_pp_sg",
+  "fuser": "hillclimb",
+  "use_pp": true,
+  "use_sg": true,
+  "candidate_ids": [
+    "c20_r9_pf128_full",
+    "c50_ravaghi_lgb1",
+    "c51_ravaghi_lgb2",
+    "c52_ravaghi_lgb3",
+    "c53_ravaghi_cat1",
+    "c54_ravaghi_cat2"
+  ],
+  "perwell_oof": 6.974723646921902,
+  "flat_oof": 9.29884752237191,
+  "stage_ladder": {
+    "hold_last": {
+      "flat": 15.90985287041859,
+      "perwell": 12.812466352742424
+    },
+    "raw_blend": {
+      "flat": 9.299058959795277,
+      "perwell": 6.9901663217582515
+    },
+    "+apply_pp": {
+      "flat": 9.299226401333698,
+      "perwell": 6.975409677099759
+    },
+    "+sg_smooth": {
+      "flat": 9.29884752237191,
+      "perwell": 6.974723646921902
+    }
+  },
+  "averaged_weights": {
+    "c20_r9_pf128_full": 0.5291714916147652,
+    "c51_ravaghi_lgb2": 0.1535731451526435,
+    "c54_ravaghi_cat2": 0.11175844086902667,
+    "c50_ravaghi_lgb1": 0.0879452049930177,
+    "c53_ravaghi_cat1": 0.05929910702037566,
+    "c52_ravaghi_lgb3": 0.03759614717512768
+  },
+  "fold_pp_params": [
+    {
+      "alpha": 1.02,
+      "tau": 65,
+      "w_pf": 0.03
+    },
+    {
+      "alpha": 1.02,
+      "tau": 50,
+      "w_pf": 0.03
+    },
+    {
+      "alpha": 1.02,
+      "tau": 50,
+      "w_pf": 0.03
+    },
+    {
+      "alpha": 1.02,
+      "tau": 50,
+      "w_pf": 0.03
+    },
+    {
+      "alpha": 1.02,
+      "tau": 50,
+      "w_pf": 0.03
+    }
+  ],
+  "wall_seconds": 218.9390902519226
+}

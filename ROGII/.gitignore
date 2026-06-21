@@ -78,3 +78,10 @@ experiments/round_010/submission_package/joined_features_dataset/
 # Kaggle package-manager helper downloads (regenerable)
 experiments/round_010/submission_package/pm_hill/
 experiments/round_010/submission_package/pm_ridge/
+
+# run_v13 local artifact dataset payload (native models + OOF — regenerable via export script, uploaded to Kaggle separately)
+experiments/round_010/submission_package/run_v13_local_artifact_dataset/models/
+experiments/round_010/submission_package/run_v13_local_artifact_dataset/oof/
+experiments/round_010/submission_package/run_v13_local_artifact_dataset/metrics/
+experiments/round_010/submission_package/*/hillclimb_submit.ipynb
+experiments/round_010/submission_package/*/__pycache__/
